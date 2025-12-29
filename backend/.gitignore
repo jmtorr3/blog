@@ -14,6 +14,7 @@ __pycache__/
 
 # Environment
 .env
+.env.production
 
 # IDE
 .idea/
