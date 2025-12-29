@@ -111,6 +111,23 @@ body.theme-dark .post .description {
   color: #aaa;
 }
 
+.post .block-text {
+  white-space: pre-wrap;
+}
+
+.text-block .ProseMirror {
+  white-space: pre-wrap;
+}
+
+/* Preserve whitespace in editor */
+.ProseMirror {
+  white-space: pre-wrap;
+}
+
+.ProseMirror p {
+  white-space: pre-wrap;
+}
+
 body.theme-dark .block-image figcaption {
   color: #aaa;
 }

@@ -15,6 +15,17 @@ function TextBlock({ block, onChange, onDelete }) {
     onUpdate: ({ editor }) => {
       onChange({ content: editor.getHTML() });
     },
+    editorProps: {
+      handleKeyDown: (view, event) => {
+        if (event.key === 'Tab') {
+          event.preventDefault();
+          // Use non-breaking spaces that won't be collapsed
+          view.dispatch(view.state.tr.insertText('\u00A0\u00A0\u00A0\u00A0'));
+          return true;
+        }
+        return false;
+      },
+    },
   });
 
   useEffect(() => {
