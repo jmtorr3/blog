@@ -28,7 +28,7 @@ function App() {
               }
             />
             <Route
-              path="editor/:slug"
+              path="/blog/:username/editor/:slug"
               element={
                 <ProtectedRoute>
                   <Editor />

@@ -53,7 +53,7 @@ function Post() {
         <div className="meta">
           <Link to={`/blog/${post.author?.username}`}>By {post.author?.username}</Link>
           <span>{new Date(post.published_at || post.created_at).toLocaleDateString()}</span>
-          {isAuthor && <Link to={`/editor/${post.slug}`}>Edit</Link>}
+          {isAuthor && <Link to={`/blog/${post.author.username}/editor/${post.slug}`}>Edit</Link>}
         </div>
       </header>
       <div className="content">

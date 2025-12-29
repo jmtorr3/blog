@@ -1,16 +1,19 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getPost, createPost, updatePost, publishPost, deletePost } from '../api/posts';
+import { getPost, createPost, updatePost, publishPost, unpublishPost, deletePost } from '../api/posts';
+import { useAuth } from '../hooks/useAuth';
 import BlockEditor from '../components/Editor/BlockEditor';
 
 function Editor() {
   const { slug } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [post, setPost] = useState({
     title: '',
     description: '',
     blocks: [],
     status: 'draft',
+    custom_css: '',
   });
   const [loading, setLoading] = useState(!!slug);
   const [saving, setSaving] = useState(false);
@@ -31,7 +34,7 @@ function Editor() {
         await updatePost(slug, post);
       } else {
         const newPost = await createPost(post);
-        navigate(`/editor/${newPost.slug}`, { replace: true });
+        navigate(`/blog/${user.username}/editor/${newPost.slug}`, { replace: true });
       }
     } catch (err) {
       console.error(err);
@@ -46,12 +49,25 @@ function Editor() {
       if (!slug) {
         const newPost = await createPost(post);
         await publishPost(newPost.slug);
-        navigate(`/post/${newPost.slug}`);
+        navigate(`/blog/${user.username}/post/${newPost.slug}`);
       } else {
         await updatePost(slug, post);
         await publishPost(slug);
-        navigate(`/post/${slug}`);
+        navigate(`/blog/${user.username}/post/${slug}`);
       }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleUnpublish = async () => {
+    if (!slug) return;
+    setSaving(true);
+    try {
+      await unpublishPost(slug);
+      setPost({ ...post, status: 'draft' });
     } catch (err) {
       console.error(err);
     } finally {
@@ -62,7 +78,6 @@ function Editor() {
   const handleDelete = async () => {
     if (!slug) return;
     if (!confirm('Are you sure you want to delete this post?')) return;
-    
     try {
       await deletePost(slug);
       navigate('/drafts');
@@ -87,9 +102,15 @@ function Editor() {
           <button onClick={handleSave} disabled={saving}>
             {saving ? 'Saving...' : 'Save Draft'}
           </button>
-          <button onClick={handlePublish} disabled={saving}>
-            Publish
-          </button>
+          {post.status === 'published' ? (
+            <button onClick={handleUnpublish} disabled={saving}>
+              Unpublish
+            </button>
+          ) : (
+            <button onClick={handlePublish} disabled={saving}>
+              Publish
+            </button>
+          )}
           {slug && (
             <button onClick={handleDelete} className="danger">
               Delete
@@ -105,13 +126,13 @@ function Editor() {
         onChange={(e) => setPost({ ...post, description: e.target.value })}
         className="description-input"
       />
-
+      
       <textarea
-      placeholder="Custom CSS (optional)"
-      value={post.custom_css || ''}
-      onChange={(e) => setPost({ ...post, custom_css: e.target.value })}
-      className="css-input"
-      rows={6}
+        placeholder="Custom CSS (optional)"
+        value={post.custom_css || ''}
+        onChange={(e) => setPost({ ...post, custom_css: e.target.value })}
+        className="css-input"
+        rows={6}
       />
       
       <BlockEditor

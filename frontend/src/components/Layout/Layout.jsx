@@ -13,7 +13,7 @@ function Layout() {
             {user ? (
               <>
                 <Link to="/drafts">Drafts</Link>
-                <Link to="/editor">New Post</Link>
+                <Link to={`/blog/${user.username}/editor`}>New Post</Link>
                 <button onClick={logout}>Logout</button>
               </>
             ) : (

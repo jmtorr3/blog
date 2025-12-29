@@ -29,6 +29,18 @@ function BlockRenderer({ blocks }) {
                 {block.caption && <figcaption>{block.caption}</figcaption>}
               </figure>
             );
+
+          case 'image-row':
+            return (
+              <div key={block.id} className={`block-image-row columns-${block.columns || 2}`}>
+                {(block.images || []).map((image, index) => (
+                  <figure key={index} className="image-row-item">
+                    <img src={image.src} alt={image.caption || ''} />
+                    {image.caption && <figcaption>{image.caption}</figcaption>}
+                  </figure>
+                ))}
+              </div>
+            );
           
           case 'video':
             return (

@@ -96,7 +96,7 @@ class PostCreateUpdateSerializer(serializers.ModelSerializer):
         if not isinstance(value, list):
             raise serializers.ValidationError("Blocks must be a list")
         
-        valid_types = ['text', 'image', 'video', 'code', 'heading']
+        valid_types = ['text', 'image', 'video', 'code', 'heading', 'image-row']
         
         for block in value:
             if not isinstance(block, dict):

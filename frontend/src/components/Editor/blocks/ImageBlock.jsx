@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { uploadMedia } from '../../../api/media';
+import { uploadMedia, deleteMediaByUrl } from '../../../api/media';
 
 function ImageBlock({ block, onChange, onDelete }) {
   const [uploading, setUploading] = useState(false);
@@ -11,13 +11,23 @@ function ImageBlock({ block, onChange, onDelete }) {
     setUploading(true);
     try {
       const media = await uploadMedia(file);
-      console.log('Media response:', media);
       onChange({ src: media.url });
     } catch (err) {
       console.error(err);
     } finally {
       setUploading(false);
     }
+  };
+
+  const handleRemove = async () => {
+    if (block.src) {
+      try {
+        await deleteMediaByUrl(block.src);
+      } catch (err) {
+        console.error('Failed to delete media:', err);
+      }
+    }
+    onChange({ src: '' });
   };
 
   return (
@@ -54,7 +64,7 @@ function ImageBlock({ block, onChange, onDelete }) {
             onChange={(e) => onChange({ caption: e.target.value })}
             placeholder="Caption (optional)"
           />
-          <button onClick={() => onChange({ src: '' })}>Remove</button>
+          <button onClick={handleRemove}>Remove</button>
         </div>
       ) : (
         <div className="image-upload">

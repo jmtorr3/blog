@@ -17,6 +17,7 @@ import SortableBlock from './SortableBlock';
 import TextBlock from './blocks/TextBlock';
 import HeadingBlock from './blocks/HeadingBlock';
 import ImageBlock from './blocks/ImageBlock';
+import ImageRowBlock from './blocks/ImageRowBlock';
 import CodeBlock from './blocks/CodeBlock';
 
 function BlockEditor({ blocks, onChange }) {
@@ -44,6 +45,10 @@ function BlockEditor({ blocks, onChange }) {
         newBlock.src = '';
         newBlock.caption = '';
         newBlock.position = 'full';
+        break;
+      case 'image-row':
+        newBlock.images = []; 
+        newBlock.columns = 2;   
         break;
       case 'code':
         newBlock.content = '';
@@ -86,6 +91,8 @@ function BlockEditor({ blocks, onChange }) {
         return <HeadingBlock {...props} />;
       case 'image':
         return <ImageBlock {...props} />;
+      case 'image-row':
+        return <ImageRowBlock {...props} />;
       case 'code':
         return <CodeBlock {...props} />;
       default:
@@ -113,6 +120,7 @@ function BlockEditor({ blocks, onChange }) {
         <button onClick={() => addBlock('text')}>+ Text</button>
         <button onClick={() => addBlock('heading')}>+ Heading</button>
         <button onClick={() => addBlock('image')}>+ Image</button>
+        <button onClick={() => addBlock('image-row')}>+ Image Row</button>
         <button onClick={() => addBlock('code')}>+ Code</button>
       </div>
     </div>
