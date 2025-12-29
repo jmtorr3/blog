@@ -3,6 +3,9 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.parsers import MultiPartParser, FormParser
 from django.utils import timezone
+from rest_framework.views import APIView
+from django.contrib.auth.models import User
+from django.shortcuts import get_object_or_404
 
 from .models import Post, Media
 from .serializers import (
@@ -13,6 +16,27 @@ from .serializers import (
     MediaUploadSerializer
 )
 
+class UserPostsView(APIView):
+    permission_classes = [permissions.AllowAny]
+    
+    def get(self, request, username, slug=None):
+        user = get_object_or_404(User, username=username)
+        
+        if slug:
+            # Single post
+            post = get_object_or_404(
+                Post, 
+                author=user, 
+                slug=slug, 
+                status=Post.Status.PUBLISHED
+            )
+            serializer = PostDetailSerializer(post, context={'request': request})
+        else:
+            # All posts by user
+            posts = Post.objects.filter(author=user, status=Post.Status.PUBLISHED)
+            serializer = PostListSerializer(posts, many=True, context={'request': request})
+        
+        return Response(serializer.data)
 
 class IsAuthorOrReadOnly(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):

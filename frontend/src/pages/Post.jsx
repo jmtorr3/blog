@@ -1,24 +1,27 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { getPost } from '../api/posts';
+import client from '../api/client';
 import { useAuth } from '../hooks/useAuth';
 import BlockRenderer from '../components/Editor/BlockRenderer';
 
 function Post() {
-  const { slug } = useParams();
+  const { username, slug } = useParams();
   const { user } = useAuth();
   const [post, setPost] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    getPost(slug)
-      .then(setPost)
+    const url = username 
+      ? `/users/${username}/posts/${slug}/`
+      : `/posts/${slug}/`;
+    
+    client.get(url)
+      .then((res) => setPost(res.data))
       .catch((err) => setError(err.response?.data?.detail || 'Post not found'))
       .finally(() => setLoading(false));
-  }, [slug]);
+  }, [username, slug]);
 
-  // Inject custom CSS when post loads
   useEffect(() => {
     if (post?.custom_css) {
       const style = document.createElement('style');
@@ -26,7 +29,6 @@ function Post() {
       style.textContent = post.custom_css;
       document.head.appendChild(style);
 
-      // Add class to body for full-page styling
       document.body.classList.add('custom-post-page');
 
       return () => {
@@ -41,7 +43,7 @@ function Post() {
   if (error) return <div className="error">{error}</div>;
   if (!post) return <div>Post not found</div>;
 
-  const isAuthor = user?.id === post.author?.id;
+  const isAuthor = user?.username === (username || post.author?.username);
 
   return (
     <article className="post">
@@ -49,7 +51,7 @@ function Post() {
         <h1>{post.title}</h1>
         {post.description && <p className="description">{post.description}</p>}
         <div className="meta">
-          <span>By {post.author?.username}</span>
+          <Link to={`/blog/${post.author?.username}`}>By {post.author?.username}</Link>
           <span>{new Date(post.published_at || post.created_at).toLocaleDateString()}</span>
           {isAuthor && <Link to={`/editor/${post.slug}`}>Edit</Link>}
         </div>

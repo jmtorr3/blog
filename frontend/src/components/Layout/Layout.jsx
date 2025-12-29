@@ -8,7 +8,7 @@ function Layout() {
     <div className="app">
       <header className="header">
         <nav>
-          <Link to="/" className="logo">Blog</Link>
+          <Link to="/" className="logo">sys32blog</Link>
           <div className="nav-links">
             {user ? (
               <>
