@@ -237,9 +237,9 @@ body.custom-post-page.theme-light {
    =========================================== */
 
 .app {
-  max-width: 800px;
+  max-width: 1400px !important;
   margin: 0 auto;
-  padding: 20px;
+  padding: 20px 40px;
 }
 
 /* Header */
@@ -403,6 +403,10 @@ button.danger {
 }
 
 /* Post display */
+.post {
+  max-width: 1200px !important;
+  margin: 0 auto;
+}
 .post header {
   margin-bottom: 40px;
 }
