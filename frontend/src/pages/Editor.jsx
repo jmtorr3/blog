@@ -1,0 +1,117 @@
+import { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { getPost, createPost, updatePost, publishPost, deletePost } from '../api/posts';
+import BlockEditor from '../components/Editor/BlockEditor';
+
+function Editor() {
+  const { slug } = useParams();
+  const navigate = useNavigate();
+  const [post, setPost] = useState({
+    title: '',
+    description: '',
+    blocks: [],
+    status: 'draft',
+  });
+  const [loading, setLoading] = useState(!!slug);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (slug) {
+      getPost(slug)
+        .then(setPost)
+        .catch(console.error)
+        .finally(() => setLoading(false));
+    }
+  }, [slug]);
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      if (slug) {
+        await updatePost(slug, post);
+      } else {
+        const newPost = await createPost(post);
+        navigate(`/editor/${newPost.slug}`, { replace: true });
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handlePublish = async () => {
+    setSaving(true);
+    try {
+      if (!slug) {
+        const newPost = await createPost(post);
+        await publishPost(newPost.slug);
+        navigate(`/post/${newPost.slug}`);
+      } else {
+        await updatePost(slug, post);
+        await publishPost(slug);
+        navigate(`/post/${slug}`);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!slug) return;
+    if (!confirm('Are you sure you want to delete this post?')) return;
+    
+    try {
+      await deletePost(slug);
+      navigate('/drafts');
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  if (loading) return <div>Loading...</div>;
+
+  return (
+    <div className="editor-page">
+      <div className="editor-header">
+        <input
+          type="text"
+          placeholder="Post title"
+          value={post.title}
+          onChange={(e) => setPost({ ...post, title: e.target.value })}
+          className="title-input"
+        />
+        <div className="editor-actions">
+          <button onClick={handleSave} disabled={saving}>
+            {saving ? 'Saving...' : 'Save Draft'}
+          </button>
+          <button onClick={handlePublish} disabled={saving}>
+            Publish
+          </button>
+          {slug && (
+            <button onClick={handleDelete} className="danger">
+              Delete
+            </button>
+          )}
+        </div>
+      </div>
+      
+      <input
+        type="text"
+        placeholder="Short description"
+        value={post.description}
+        onChange={(e) => setPost({ ...post, description: e.target.value })}
+        className="description-input"
+      />
+      
+      <BlockEditor
+        blocks={post.blocks}
+        onChange={(blocks) => setPost({ ...post, blocks })}
+      />
+    </div>
+  );
+}
+
+export default Editor;
