@@ -18,6 +18,25 @@ function Post() {
       .finally(() => setLoading(false));
   }, [slug]);
 
+  // Inject custom CSS when post loads
+  useEffect(() => {
+    if (post?.custom_css) {
+      const style = document.createElement('style');
+      style.id = 'post-custom-css';
+      style.textContent = post.custom_css;
+      document.head.appendChild(style);
+
+      // Add class to body for full-page styling
+      document.body.classList.add('custom-post-page');
+
+      return () => {
+        const existing = document.getElementById('post-custom-css');
+        if (existing) existing.remove();
+        document.body.classList.remove('custom-post-page');
+      };
+    }
+  }, [post]);
+
   if (loading) return <div>Loading...</div>;
   if (error) return <div className="error">{error}</div>;
   if (!post) return <div>Post not found</div>;

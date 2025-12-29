@@ -258,12 +258,26 @@ button.danger {
 .post-list p {
   color: #666;
 }
-```
 
----
+body.custom-post-page {
+  background: #1a1a1a;
+}
 
-Finally, create a `.env` file in the frontend folder:
+body.custom-post-page .header {
+  background: #1a1a1a;
+  border-bottom-color: #333;
+}
 
-**`frontend/.env`**
-```
-VITE_API_URL=http://localhost:8000/api
+body.custom-post-page .header nav a,
+body.custom-post-page .header nav button {
+  color: #fff;
+}
+
+body.custom-post-page .post {
+  background: #1a1a1a;
+  color: #fff;
+}
+
+body.custom-post-page .post h1 {
+  color: #ff6b6b;
+}

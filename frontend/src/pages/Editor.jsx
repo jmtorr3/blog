@@ -105,6 +105,14 @@ function Editor() {
         onChange={(e) => setPost({ ...post, description: e.target.value })}
         className="description-input"
       />
+
+      <textarea
+      placeholder="Custom CSS (optional)"
+      value={post.custom_css || ''}
+      onChange={(e) => setPost({ ...post, custom_css: e.target.value })}
+      className="css-input"
+      rows={6}
+      />
       
       <BlockEditor
         blocks={post.blocks}
