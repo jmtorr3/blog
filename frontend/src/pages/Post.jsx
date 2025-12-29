@@ -15,7 +15,6 @@ function Post() {
     const url = username 
       ? `/users/${username}/posts/${slug}/`
       : `/posts/${slug}/`;
-    
     client.get(url)
       .then((res) => setPost(res.data))
       .catch((err) => setError(err.response?.data?.detail || 'Post not found'))
@@ -29,12 +28,17 @@ function Post() {
       style.textContent = post.custom_css;
       document.head.appendChild(style);
 
+      // Remove theme class and add custom-post-page class
+      const currentTheme = document.body.classList.contains('theme-dark') ? 'theme-dark' : 'theme-light';
+      document.body.classList.remove('theme-dark', 'theme-light');
       document.body.classList.add('custom-post-page');
 
       return () => {
         const existing = document.getElementById('post-custom-css');
         if (existing) existing.remove();
         document.body.classList.remove('custom-post-page');
+        // Restore theme class
+        document.body.classList.add(currentTheme);
       };
     }
   }, [post]);

@@ -13,6 +13,7 @@ import {
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
+import { deleteMediaByUrl } from '../../api/media';
 import SortableBlock from './SortableBlock';
 import TextBlock from './blocks/TextBlock';
 import HeadingBlock from './blocks/HeadingBlock';
@@ -44,11 +45,12 @@ function BlockEditor({ blocks, onChange }) {
       case 'image':
         newBlock.src = '';
         newBlock.caption = '';
-        newBlock.position = 'full';
+        newBlock.position = 'center';
+        newBlock.size = 'medium';
         break;
       case 'image-row':
-        newBlock.images = []; 
-        newBlock.columns = 2;   
+        newBlock.images = [];
+        newBlock.columns = 2;
         break;
       case 'code':
         newBlock.content = '';
@@ -63,7 +65,26 @@ function BlockEditor({ blocks, onChange }) {
     onChange(blocks.map((b) => (b.id === id ? { ...b, ...updates } : b)));
   };
 
-  const deleteBlock = (id) => {
+  const deleteBlock = async (id) => {
+    const block = blocks.find((b) => b.id === id);
+    
+    // Clean up media files
+    if (block) {
+      try {
+        if (block.type === 'image' && block.src) {
+          await deleteMediaByUrl(block.src);
+        } else if (block.type === 'image-row' && block.images) {
+          for (const image of block.images) {
+            if (image.src) {
+              await deleteMediaByUrl(image.src);
+            }
+          }
+        }
+      } catch (err) {
+        console.error('Failed to delete media:', err);
+      }
+    }
+    
     onChange(blocks.filter((b) => b.id !== id));
   };
 

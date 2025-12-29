@@ -1,8 +1,10 @@
 import { Outlet, Link } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
+import { useTheme } from '../../hooks/useTheme';
 
 function Layout() {
   const { user, logout } = useAuth();
+  const { theme, toggleTheme } = useTheme();
 
   return (
     <div className="app">
@@ -10,6 +12,9 @@ function Layout() {
         <nav>
           <Link to="/" className="logo">sys32blog</Link>
           <div className="nav-links">
+            <button onClick={toggleTheme} className="theme-toggle">
+              {theme === 'dark' ? '☀️' : '🌙'}
+            </button>
             {user ? (
               <>
                 <Link to="/drafts">Drafts</Link>

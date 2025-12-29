@@ -1,3 +1,7 @@
+/* ===========================================
+   GLOBAL THEME STYLES
+   =========================================== */
+
 * {
   box-sizing: border-box;
   margin: 0;
@@ -7,8 +11,230 @@
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   line-height: 1.6;
+}
+
+/* --- DARK THEME --- */
+body.theme-dark {
+  background: #1a1a1a;
+  color: #e0e0e0;
+}
+
+body.theme-dark .app {
+  background: #1a1a1a;
+}
+
+body.theme-dark .header {
+  background: #1a1a1a;
+  border-bottom-color: #333;
+}
+
+body.theme-dark .header .logo {
+  color: #fff;
+}
+
+body.theme-dark .header nav a,
+body.theme-dark .header nav button {
+  color: #ccc;
+}
+
+body.theme-dark .header nav a:hover,
+body.theme-dark .header nav button:hover {
+  color: #fff;
+}
+
+body.theme-dark input,
+body.theme-dark textarea,
+body.theme-dark select {
+  background: #2a2a2a;
+  border-color: #444;
+  color: #e0e0e0;
+}
+
+body.theme-dark .post-list a {
+  color: #e0e0e0;
+}
+
+body.theme-dark .post-list p {
+  color: #aaa;
+}
+
+body.theme-dark .post-list li {
+  border-bottom-color: #333;
+}
+
+body.theme-dark .sortable-block {
+  border-color: #333;
+  background: #2a2a2a;
+}
+
+body.theme-dark .drag-handle {
+  color: #666;
+}
+
+body.theme-dark .ProseMirror {
+  background: #2a2a2a;
+  border-color: #444;
+  color: #e0e0e0;
+}
+
+body.theme-dark button {
+  background: #444;
+  color: #fff;
+}
+
+body.theme-dark button:hover {
+  background: #555;
+}
+
+body.theme-dark button.danger {
+  background: #dc3545;
+}
+
+body.theme-dark .add-block button {
+  background: #2a2a2a;
+  color: #ccc;
+}
+
+body.theme-dark .post {
+  color: #e0e0e0;
+}
+
+body.theme-dark .post .meta {
+  color: #aaa;
+}
+
+body.theme-dark .post .meta a {
+  color: #6db3f2;
+}
+
+body.theme-dark .post .description {
+  color: #aaa;
+}
+
+body.theme-dark .block-image figcaption {
+  color: #aaa;
+}
+
+body.theme-dark .image-row-add {
+  border-color: #444;
+}
+
+body.theme-dark .login label {
+  color: #e0e0e0;
+}
+
+/* --- LIGHT THEME --- */
+body.theme-light {
+  background: #f5f5f5;
   color: #333;
 }
+
+body.theme-light .app {
+  background: #f5f5f5;
+}
+
+body.theme-light .header {
+  background: #f5f5f5;
+  border-bottom-color: #f5f5f5;;
+}
+
+body.theme-light .header .logo {
+  color: #333;
+}
+
+body.theme-light .header nav a,
+body.theme-light .header nav button {
+  color: #666;
+}
+
+body.theme-light .header nav a:hover,
+body.theme-light .header nav button:hover {
+  color: #333;
+}
+
+body.theme-light input,
+body.theme-light textarea,
+body.theme-light select {
+  background: #fff;
+  border-color: #ddd;
+  color: #333;
+}
+
+body.theme-light .post-list a {
+  color: #333;
+}
+
+body.theme-light .post-list p {
+  color: #666;
+}
+
+body.theme-light .post-list li {
+  border-bottom-color: #eee;
+}
+
+body.theme-light .sortable-block {
+  border-color: #ddd;
+  background: #fff;
+}
+
+body.theme-light .ProseMirror {
+  background: #fff;
+  border-color: #ddd;
+  color: #333;
+}
+
+body.theme-light button {
+  background: #333;
+  color: #fff;
+}
+
+body.theme-light button:hover {
+  background: #444;
+}
+
+body.theme-light .add-block button {
+  background: #f5f5f5;
+  color: #333;
+}
+
+body.theme-light .post {
+  color: #333;
+}
+
+body.theme-light .post .meta {
+  color: #666;
+}
+
+body.theme-light .post .meta a {
+  color: #0066cc;
+}
+
+/* --- THEME TOGGLE BUTTON --- */
+.theme-toggle {
+  background: transparent !important;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 5px 10px;
+}
+
+.theme-toggle:hover {
+  background: transparent !important;
+}
+
+/* ===========================================
+   POST CUSTOM CSS OVERRIDE
+   When a post has custom CSS, it overrides theme
+   =========================================== */
+
+body.custom-post-page.theme-dark,
+body.custom-post-page.theme-light {
+  /* Post custom CSS takes priority */
+}
+
+/* ===========================================
+   LAYOUT STYLES
+   =========================================== */
 
 .app {
   max-width: 800px;
@@ -30,7 +256,6 @@ body {
   font-size: 1.5rem;
   font-weight: bold;
   text-decoration: none;
-  color: #333;
 }
 
 .nav-links {
@@ -41,13 +266,10 @@ body {
 
 .nav-links a {
   text-decoration: none;
-  color: #666;
 }
 
 .nav-links button {
-  background: none;
   border: none;
-  color: #666;
   cursor: pointer;
 }
 
@@ -65,8 +287,6 @@ button {
   border: none;
   border-radius: 4px;
   cursor: pointer;
-  background: #333;
-  color: white;
 }
 
 button.danger {
@@ -119,7 +339,6 @@ button.danger {
 
 .drag-handle {
   cursor: grab;
-  color: #ccc;
   padding: 5px;
 }
 
@@ -148,11 +367,6 @@ button.danger {
   display: flex;
   gap: 10px;
   margin-top: 20px;
-}
-
-.add-block button {
-  background: #f5f5f5;
-  color: #333;
 }
 
 /* Text editor */
@@ -198,7 +412,6 @@ button.danger {
 }
 
 .post .meta {
-  color: #666;
   display: flex;
   gap: 20px;
 }
@@ -242,7 +455,6 @@ button.danger {
 
 .block-image figcaption {
   font-size: 0.875rem;
-  color: #666;
   margin-top: 8px;
   font-style: italic;
 }
@@ -344,7 +556,6 @@ button.danger {
 
 .block-image-row .image-row-item figcaption {
   font-size: 0.875rem;
-  color: #666;
   margin-top: 5px;
   text-align: center;
 }
@@ -387,31 +598,4 @@ button.danger {
 
 .post-list h2 {
   margin-bottom: 5px;
-}
-
-.post-list p {
-  color: #666;
-}
-
-body.custom-post-page {
-  background: #1a1a1a;
-}
-
-body.custom-post-page .header {
-  background: #1a1a1a;
-  border-bottom-color: #333;
-}
-
-body.custom-post-page .header nav a,
-body.custom-post-page .header nav button {
-  color: #fff;
-}
-
-body.custom-post-page .post {
-  background: #1a1a1a;
-  color: #fff;
-}
-
-body.custom-post-page .post h1 {
-  color: #ff6b6b;
 }
