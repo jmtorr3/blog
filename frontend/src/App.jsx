@@ -6,6 +6,7 @@ import Home from './pages/Home';
 import Post from './pages/Post';
 import UserBlog from './pages/UserBlog';
 import Login from './pages/Login';
+import Register from './pages/Register';
 import Editor from './pages/Editor';
 import Drafts from './pages/Drafts';
 import ProtectedRoute from './components/Layout/ProtectedRoute';
@@ -18,6 +19,7 @@ function App() {
           <Routes>
             <Route path="/" element={<Layout />}>
               <Route index element={<Home />} />
+              <Route path="register" element={<Register />} />
               <Route path="login" element={<Login />} />
               <Route path=":username" element={<UserBlog />} />
               <Route path=":username/post/:slug" element={<Post />} />

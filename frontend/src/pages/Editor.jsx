@@ -46,15 +46,18 @@ function Editor() {
   const handlePublish = async () => {
     setSaving(true);
     try {
-      if (!slug) {
+      let postSlug = slug;
+    
+      // If no slug, create the post first
+      if (!postSlug) {
         const newPost = await createPost(post);
-        await publishPost(newPost.slug);
-        navigate(`/${user.username}/post/${newPost.slug}`);
+        postSlug = newPost.slug;
       } else {
-        await updatePost(slug, post);
-        await publishPost(slug);
-        navigate(`/${user.username}/post/${slug}`);
+        await updatePost(postSlug, post);
       }
+    
+      await publishPost(postSlug);
+      navigate(`/${user.username}/post/${postSlug}`);
     } catch (err) {
       console.error(err);
     } finally {

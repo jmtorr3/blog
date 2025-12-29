@@ -16,6 +16,7 @@ from .serializers import (
     MediaUploadSerializer
 )
 
+
 class UserPostsView(APIView):
     permission_classes = [permissions.AllowAny]
     
@@ -23,7 +24,6 @@ class UserPostsView(APIView):
         user = get_object_or_404(User, username=username)
         
         if slug:
-            # Single post
             post = get_object_or_404(
                 Post, 
                 author=user, 
@@ -32,11 +32,11 @@ class UserPostsView(APIView):
             )
             serializer = PostDetailSerializer(post, context={'request': request})
         else:
-            # All posts by user
             posts = Post.objects.filter(author=user, status=Post.Status.PUBLISHED)
             serializer = PostListSerializer(posts, many=True, context={'request': request})
         
         return Response(serializer.data)
+
 
 class IsAuthorOrReadOnly(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
@@ -66,10 +66,6 @@ class PostViewSet(viewsets.ModelViewSet):
         if self.action in ['create', 'update', 'partial_update']:
             return PostCreateUpdateSerializer
         return PostDetailSerializer
-
-    def create(self, request, *args, **kwargs):
-        print("REQUEST DATA:", request.data)
-        return super().create(request, *args, **kwargs)
     
     @action(detail=False, methods=['get'], permission_classes=[permissions.IsAuthenticated])
     def drafts(self, request):
@@ -118,10 +114,9 @@ class MediaViewSet(viewsets.ModelViewSet):
         return MediaSerializer
     
     def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
+        serializer = MediaUploadSerializer(data=request.data, context={'request': request})
         serializer.is_valid(raise_exception=True)
         media = serializer.save()
-        # Return full MediaSerializer response with URL
         response_serializer = MediaSerializer(media, context={'request': request})
         return Response(response_serializer.data, status=status.HTTP_201_CREATED)
     

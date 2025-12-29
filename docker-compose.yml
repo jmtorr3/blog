@@ -20,6 +20,7 @@ services:
     volumes:
       - media_data:/app/media
     environment:
+      INVITE_CODE: ${INVITE_CODE}
       USE_POSTGRES: "True"
       DB_NAME: blog
       DB_USER: blog
@@ -41,7 +42,7 @@ services:
       context: .
       dockerfile: Dockerfile.frontend
       args:
-        VITE_API_URL: ${VITE_API_URL:-http://localhost:8000/api}
+        VITE_API_URL: ${VITE_API_URL:-/blog/api}
     ports:
       - "80:80"
     depends_on:

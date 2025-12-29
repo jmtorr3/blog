@@ -22,8 +22,13 @@ export const getMe = async () => {
   return response.data;
 };
 
-export const register = async (username, email, password) => {
-  const response = await client.post('/auth/register/', { username, email, password });
+export const register = async (username, email, password, inviteCode) => {
+  const response = await client.post('/auth/register/', { 
+    username, 
+    email, 
+    password,
+    invite_code: inviteCode
+  });
   localStorage.setItem('access_token', response.data.access);
   localStorage.setItem('refresh_token', response.data.refresh);
   return response.data;
