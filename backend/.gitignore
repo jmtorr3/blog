@@ -1,0 +1,23 @@
+cat > .gitignore << 'EOF'
+# Database
+db.sqlite3
+
+# Media uploads
+media/
+
+# Virtual environment
+venv/
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyc
+
+# Environment
+.env
+
+# IDE
+.idea/
+.vscode/
+*.swp
+EOF
