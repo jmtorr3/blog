@@ -11,6 +11,7 @@ function ImageBlock({ block, onChange, onDelete }) {
     setUploading(true);
     try {
       const media = await uploadMedia(file);
+      console.log('Media response:', media);
       onChange({ src: media.url });
     } catch (err) {
       console.error(err);
@@ -23,19 +24,30 @@ function ImageBlock({ block, onChange, onDelete }) {
     <div className="image-block">
       <div className="block-toolbar">
         <select
-          value={block.position}
+          value={block.position || 'center'}
           onChange={(e) => onChange({ position: e.target.value })}
         >
-          <option value="full">Full width</option>
-          <option value="left">Float left</option>
-          <option value="right">Float right</option>
+          <option value="left">Left</option>
+          <option value="center">Center</option>
+          <option value="right">Right</option>
         </select>
+        
+        <select
+          value={block.size || 'medium'}
+          onChange={(e) => onChange({ size: e.target.value })}
+        >
+          <option value="small">Small</option>
+          <option value="medium">Medium</option>
+          <option value="large">Large</option>
+          <option value="full">Full Width</option>
+        </select>
+        
         <button onClick={onDelete} className="delete">×</button>
       </div>
       
       {block.src ? (
         <div className="image-preview">
-          <img src={block.src} alt={block.caption} />
+          <img src={block.src} alt={block.caption || ''} />
           <input
             type="text"
             value={block.caption || ''}

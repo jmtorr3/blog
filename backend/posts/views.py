@@ -93,6 +93,14 @@ class MediaViewSet(viewsets.ModelViewSet):
             return MediaUploadSerializer
         return MediaSerializer
     
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        media = serializer.save()
+        # Return full MediaSerializer response with URL
+        response_serializer = MediaSerializer(media, context={'request': request})
+        return Response(response_serializer.data, status=status.HTTP_201_CREATED)
+    
     def perform_destroy(self, instance):
         instance.file.delete(save=False)
         instance.delete()

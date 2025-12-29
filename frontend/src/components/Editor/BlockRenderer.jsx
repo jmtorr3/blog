@@ -21,7 +21,10 @@ function BlockRenderer({ blocks }) {
           
           case 'image':
             return (
-              <figure key={block.id} className={`block-image ${block.position || ''}`}>
+              <figure 
+                key={block.id} 
+                className={`block-image position-${block.position || 'center'} size-${block.size || 'medium'}`}
+              >
                 <img src={block.src} alt={block.caption || ''} />
                 {block.caption && <figcaption>{block.caption}</figcaption>}
               </figure>
