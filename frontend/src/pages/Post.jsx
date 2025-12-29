@@ -1,39 +1,45 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { getPosts } from '../api/posts';
+import { useParams, Link } from 'react-router-dom';
+import { getPost } from '../api/posts';
+import { useAuth } from '../hooks/useAuth';
+import BlockRenderer from '../components/Editor/BlockRenderer';
 
-function Home() {
-  const [posts, setPosts] = useState([]);
+function Post() {
+  const { slug } = useParams();
+  const { user } = useAuth();
+  const [post, setPost] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    getPosts()
-      .then((data) => setPosts(data.results || data))
-      .catch(console.error)
+    getPost(slug)
+      .then(setPost)
+      .catch((err) => setError(err.response?.data?.detail || 'Post not found'))
       .finally(() => setLoading(false));
-  }, []);
+  }, [slug]);
 
   if (loading) return <div>Loading...</div>;
+  if (error) return <div className="error">{error}</div>;
+  if (!post) return <div>Post not found</div>;
+
+  const isAuthor = user?.id === post.author?.id;
 
   return (
-    <div className="home">
-      <h1>Posts</h1>
-      {posts.length === 0 ? (
-        <p>No posts yet.</p>
-      ) : (
-        <ul className="post-list">
-          {posts.map((post) => (
-            <li key={post.id}>
-              <Link to={`/post/${post.slug}`}>
-                <h2>{post.title}</h2>
-                {post.description && <p>{post.description}</p>}
-              </Link>
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
+    <article className="post">
+      <header>
+        <h1>{post.title}</h1>
+        {post.description && <p className="description">{post.description}</p>}
+        <div className="meta">
+          <span>By {post.author?.username}</span>
+          <span>{new Date(post.published_at || post.created_at).toLocaleDateString()}</span>
+          {isAuthor && <Link to={`/editor/${post.slug}`}>Edit</Link>}
+        </div>
+      </header>
+      <div className="content">
+        <BlockRenderer blocks={post.blocks} />
+      </div>
+    </article>
   );
 }
 
-export default Home;
+export default Post;
