@@ -55,9 +55,9 @@ function Post() {
         <h1>{post.title}</h1>
         {post.description && <p className="description">{post.description}</p>}
         <div className="meta">
-          <Link to={`/blog/${post.author?.username}`}>By {post.author?.username}</Link>
+          <Link to={`/${post.author?.username}`}>By {post.author?.username}</Link>
           <span>{new Date(post.published_at || post.created_at).toLocaleDateString()}</span>
-          {isAuthor && <Link to={`/blog/${post.author.username}/editor/${post.slug}`}>Edit</Link>}
+          {isAuthor && <Link to={`/${post.author.username}/editor/${post.slug}`}>Edit</Link>}
         </div>
       </header>
       <div className="content">

@@ -34,7 +34,7 @@ function Editor() {
         await updatePost(slug, post);
       } else {
         const newPost = await createPost(post);
-        navigate(`/blog/${user.username}/editor/${newPost.slug}`, { replace: true });
+        navigate(`/${user.username}/editor/${newPost.slug}`, { replace: true });
       }
     } catch (err) {
       console.error(err);
@@ -49,11 +49,11 @@ function Editor() {
       if (!slug) {
         const newPost = await createPost(post);
         await publishPost(newPost.slug);
-        navigate(`/blog/${user.username}/post/${newPost.slug}`);
+        navigate(`/${user.username}/post/${newPost.slug}`);
       } else {
         await updatePost(slug, post);
         await publishPost(slug);
-        navigate(`/blog/${user.username}/post/${slug}`);
+        navigate(`/${user.username}/post/${slug}`);
       }
     } catch (err) {
       console.error(err);

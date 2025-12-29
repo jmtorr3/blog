@@ -14,15 +14,15 @@ function App() {
   return (
     <ThemeProvider>
       <AuthProvider>
-        <BrowserRouter>
+        <BrowserRouter basename="/blog">
           <Routes>
             <Route path="/" element={<Layout />}>
               <Route index element={<Home />} />
               <Route path="login" element={<Login />} />
-              <Route path="blog/:username" element={<UserBlog />} />
-              <Route path="blog/:username/post/:slug" element={<Post />} />
+              <Route path=":username" element={<UserBlog />} />
+              <Route path=":username/post/:slug" element={<Post />} />
               <Route
-                path="blog/:username/editor"
+                path=":username/editor"
                 element={
                   <ProtectedRoute>
                     <Editor />
@@ -30,7 +30,7 @@ function App() {
                 }
               />
               <Route
-                path="blog/:username/editor/:slug"
+                path=":username/editor/:slug"
                 element={
                   <ProtectedRoute>
                     <Editor />

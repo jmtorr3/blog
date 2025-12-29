@@ -24,7 +24,7 @@ function Home() {
         <ul className="post-list">
           {posts.map((post) => (
             <li key={post.id}>
-              <Link to={`/blog/${post.author?.username}/post/${post.slug}`}>
+              <Link to={`/${post.author?.username}/post/${post.slug}`}>
                 <h2>{post.title}</h2>
                 {post.description && <p>{post.description}</p>}
                 <span className="author">by {post.author?.username}</span>

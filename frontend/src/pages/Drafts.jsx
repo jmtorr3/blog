@@ -21,12 +21,12 @@ function Drafts() {
     <div className="drafts">
       <h1>Your Drafts</h1>
       {drafts.length === 0 ? (
-        <p>No drafts yet. <Link to={`/blog/${user.username}/editor`}>Create one</Link></p>
+        <p>No drafts yet. <Link to={`/${user.username}/editor`}>Create one</Link></p>
       ) : (
         <ul className="post-list">
           {drafts.map((post) => (
             <li key={post.id}>
-              <Link to={`/blog/${user.username}/editor/${post.slug}`}>
+              <Link to={`/${user.username}/editor/${post.slug}`}>
                 <h2>{post.title || 'Untitled'}</h2>
                 <span>Last edited: {new Date(post.updated_at).toLocaleDateString()}</span>
               </Link>

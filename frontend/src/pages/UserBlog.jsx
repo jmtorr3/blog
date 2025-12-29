@@ -27,7 +27,7 @@ function UserBlog() {
         <ul className="post-list">
           {posts.map((post) => (
             <li key={post.id}>
-              <Link to={`/blog/${username}/post/${post.slug}`}>
+              <Link to={`/${username}/post/${post.slug}`}>
                 <h2>{post.title}</h2>
                 {post.description && <p>{post.description}</p>}
               </Link>
