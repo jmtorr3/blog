@@ -15,12 +15,40 @@ export const getDrafts = async () => {
   return response.data;
 };
 
-export const createPost = async (data) => {
+export const createPost = async (data, coverImageFile = null) => {
+  if (coverImageFile) {
+    const formData = new FormData();
+    formData.append('title', data.title);
+    formData.append('description', data.description || '');
+    formData.append('blocks', JSON.stringify(data.blocks));
+    formData.append('status', data.status);
+    formData.append('cover_image', coverImageFile);
+
+    const response = await client.post('/posts/', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+    return response.data;
+  }
+
   const response = await client.post('/posts/', data);
   return response.data;
 };
 
-export const updatePost = async (slug, data) => {
+export const updatePost = async (slug, data, coverImageFile = null) => {
+  if (coverImageFile) {
+    const formData = new FormData();
+    formData.append('title', data.title);
+    formData.append('description', data.description || '');
+    formData.append('blocks', JSON.stringify(data.blocks));
+    formData.append('status', data.status);
+    formData.append('cover_image', coverImageFile);
+
+    const response = await client.patch(`/posts/${slug}/`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+    return response.data;
+  }
+
   const response = await client.patch(`/posts/${slug}/`, data);
   return response.data;
 };

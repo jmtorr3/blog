@@ -8,10 +8,19 @@ from django.conf import settings
 
 
 def post_media_path(instance, filename):
-    """Upload media to media/posts/{post_slug}/{filename}"""
+    """Upload media to media/{username}/posts/{post_slug}/{filename}"""
     if instance.post:
-        return f'posts/{instance.post.slug}/{filename}'
-    return f'uploads/{filename}'
+        username = instance.post.author.username
+        return f'{username}/posts/{instance.post.slug}/{filename}'
+    # Fallback for media without a post assigned yet
+    username = instance.uploaded_by.username
+    return f'{username}/uploads/{filename}'
+
+
+def cover_image_path(instance, filename):
+    """Upload cover images to media/{username}/covers/{filename}"""
+    username = instance.author.username
+    return f'{username}/covers/{filename}'
 
 
 class Post(models.Model):
@@ -27,7 +36,7 @@ class Post(models.Model):
     title = models.CharField(max_length=200)
     slug = models.SlugField(max_length=200, unique=True, blank=True)
     description = models.TextField(blank=True, help_text="Short description for previews")
-    cover_image = models.ImageField(upload_to='covers/', blank=True, null=True)
+    cover_image = models.ImageField(upload_to=cover_image_path, blank=True, null=True)
     blocks = models.JSONField(default=list)
     status = models.CharField(max_length=10, choices=Status.choices, default=Status.DRAFT)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -54,25 +63,26 @@ class Post(models.Model):
 
     def organize_media(self):
         """Move uploaded images to post folder based on URLs in blocks"""
-        post_folder = os.path.join(settings.MEDIA_ROOT, 'posts', self.slug)
+        username = self.author.username
+        post_folder = os.path.join(settings.MEDIA_ROOT, username, 'posts', self.slug)
         os.makedirs(post_folder, exist_ok=True)
 
         updated = False
         for block in self.blocks:
             if block.get('type') == 'image' and block.get('src'):
-                if self._move_media_file(block, 'src', post_folder):
+                if self._move_media_file(block, 'src', post_folder, username):
                     updated = True
             elif block.get('type') == 'image-row' and block.get('images'):
                 for image in block['images']:
                     if image.get('src'):
-                        if self._move_media_file(image, 'src', post_folder):
+                        if self._move_media_file(image, 'src', post_folder, username):
                             updated = True
 
         # Save updated URLs to database without triggering organize_media again
         if updated:
             Post.objects.filter(pk=self.pk).update(blocks=self.blocks)
 
-    def _move_media_file(self, block_data, key, post_folder):
+    def _move_media_file(self, block_data, key, post_folder, username):
         """Move a single media file to the post folder and update the URL"""
         import re
 
@@ -80,29 +90,30 @@ class Post(models.Model):
         if not url:
             return False
 
-        # Match both /media/uploads/ and /blog/media/uploads/
-        match = re.search(r'/(?:blog/)?media/uploads/([^/]+)$', url)
+        # Match both /media/{username}/uploads/ and /blog/media/{username}/uploads/
+        match = re.search(r'/(?:blog/)?media/([^/]+)/uploads/([^/]+)$', url)
         if not match:
             return False
 
-        filename = match.group(1)
-        old_path = os.path.join(settings.MEDIA_ROOT, 'uploads', filename)
+        url_username = match.group(1)
+        filename = match.group(2)
+        old_path = os.path.join(settings.MEDIA_ROOT, url_username, 'uploads', filename)
         new_path = os.path.join(post_folder, filename)
 
         if os.path.exists(old_path) and not os.path.exists(new_path):
             shutil.move(old_path, new_path)
 
             # Update the URL in block data - handle both URL formats
-            if '/blog/media/uploads/' in url:
-                new_url = url.replace(f'/blog/media/uploads/{filename}', f'/blog/media/posts/{self.slug}/{filename}')
+            if '/blog/media/' in url:
+                new_url = url.replace(f'/blog/media/{url_username}/uploads/{filename}', f'/blog/media/{username}/posts/{self.slug}/{filename}')
             else:
-                new_url = url.replace(f'/media/uploads/{filename}', f'/media/posts/{self.slug}/{filename}')
+                new_url = url.replace(f'/media/{url_username}/uploads/{filename}', f'/media/{username}/posts/{self.slug}/{filename}')
             block_data[key] = new_url
 
             # Update Media model if exists
-            media = Media.objects.filter(file=f'uploads/{filename}').first()
+            media = Media.objects.filter(file=f'{url_username}/uploads/{filename}').first()
             if media:
-                media.file.name = f'posts/{self.slug}/{filename}'
+                media.file.name = f'{username}/posts/{self.slug}/{filename}'
                 media.post = self
                 media.save()
 
@@ -112,7 +123,8 @@ class Post(models.Model):
 
     def delete(self, *args, **kwargs):
         # Delete the post's media folder
-        post_folder = os.path.join(settings.MEDIA_ROOT, 'posts', self.slug)
+        username = self.author.username
+        post_folder = os.path.join(settings.MEDIA_ROOT, username, 'posts', self.slug)
         if os.path.exists(post_folder):
             shutil.rmtree(post_folder)
 
@@ -164,7 +176,8 @@ class Media(models.Model):
         # Move file if post was assigned/changed
         if self.post and (is_new or old_post != self.post):
             current_name = self.file.name
-            expected_path = f'posts/{self.post.slug}/{os.path.basename(current_name)}'
+            username = self.post.author.username
+            expected_path = f'{username}/posts/{self.post.slug}/{os.path.basename(current_name)}'
 
             # Only move if not already in correct location
             if current_name != expected_path:

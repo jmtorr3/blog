@@ -272,7 +272,7 @@ This project is open source and available under the MIT License.
 
 ## Author
 
-**slumpy**
+**Jorge Manuel Torre**
 - GitHub: [@jmtorr3](https://github.com/jmtorr3)
 - Website: [sys32ent.com](https://sys32ent.com/blog)
 

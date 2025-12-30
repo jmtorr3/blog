@@ -14,9 +14,12 @@ function Editor() {
   const [post, setPost] = useState({
     title: '',
     description: '',
+    cover_image: null,
     blocks: [],
     status: 'draft',
   });
+  const [coverImageFile, setCoverImageFile] = useState(null);
+  const [coverImagePreview, setCoverImagePreview] = useState(null);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
 
@@ -28,28 +31,66 @@ function Editor() {
       getPost(slug)
         .then((data) => {
           setPost(data);
+          // Set cover image preview if exists
+          if (data.cover_image_url) {
+            setCoverImagePreview(data.cover_image_url);
+          }
         })
         .catch(console.error)
         .finally(() => setLoading(false));
     }
   }, [slug]);
 
+  const handleCoverImageChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      alert('Please select an image file');
+      return;
+    }
+
+    setCoverImageFile(file);
+
+    // Create preview URL
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setCoverImagePreview(reader.result);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleRemoveCoverImage = () => {
+    setCoverImageFile(null);
+    setCoverImagePreview(null);
+    setPost({ ...post, cover_image: null });
+  };
+
   const handleSave = async () => {
     if (!post.title.trim()) {
       alert('Please enter a title');
       return;
     }
-    
+
     setSaving(true);
     try {
       if (currentSlug) {
-        const updated = await updatePost(currentSlug, post);
+        const updated = await updatePost(currentSlug, post, coverImageFile);
         setPost(updated);
+        setCoverImageFile(null);
+        if (updated.cover_image_url) {
+          setCoverImagePreview(updated.cover_image_url);
+        }
         alert('Saved!');
       } else {
-        const newPost = await createPost(post);
+        const newPost = await createPost(post, coverImageFile);
         setCurrentSlug(newPost.slug);
         setPost(newPost);
+        setCoverImageFile(null);
+        if (newPost.cover_image_url) {
+          setCoverImagePreview(newPost.cover_image_url);
+        }
         // Update URL to show the new slug
         navigate(`/${user.username}/editor/${newPost.slug}`, { replace: true });
       }
@@ -66,19 +107,21 @@ function Editor() {
       alert('Please enter a title');
       return;
     }
-    
+
     setSaving(true);
     try {
       let postSlug = currentSlug;
-      
+
       if (!postSlug) {
-        const newPost = await createPost(post);
+        const newPost = await createPost(post, coverImageFile);
         postSlug = newPost.slug;
         setCurrentSlug(postSlug);
+        setCoverImageFile(null);
       } else {
-        await updatePost(postSlug, post);
+        await updatePost(postSlug, post, coverImageFile);
+        setCoverImageFile(null);
       }
-      
+
       await publishPost(postSlug);
       navigate(`/${user.username}/post/${postSlug}`);
     } catch (err) {
@@ -154,6 +197,30 @@ function Editor() {
         onChange={(e) => setPost({ ...post, description: e.target.value })}
         className="description-input"
       />
+
+      <div className="cover-image-section">
+        <label>Cover Image (optional)</label>
+        {coverImagePreview ? (
+          <div className="cover-image-preview">
+            <img src={coverImagePreview} alt="Cover" />
+            <button onClick={handleRemoveCoverImage} className="remove-cover">
+              Remove
+            </button>
+          </div>
+        ) : (
+          <div className="cover-image-upload">
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleCoverImageChange}
+              id="cover-image-input"
+            />
+            <label htmlFor="cover-image-input" className="upload-label">
+              Choose Cover Image
+            </label>
+          </div>
+        )}
+      </div>
 
       <AssetManager postSlug={currentSlug} />
 

@@ -114,6 +114,11 @@ function Post() {
           {isAuthor && <Link to={`/${post.author.username}/editor/${post.slug}`}>Edit</Link>}
         </div>
       </header>
+      {post.cover_image_url && (
+        <div className="post-cover-image">
+          <img src={post.cover_image_url} alt={post.title} />
+        </div>
+      )}
       <div className="content">
         <BlockRenderer blocks={post.blocks} />
       </div>

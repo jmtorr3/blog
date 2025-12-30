@@ -1,8 +1,34 @@
-import { useState } from 'react';
-import { uploadMedia, deleteMediaByUrl } from '../../../api/media';
+import { useState, useEffect } from 'react';
+import { uploadMedia, deleteMediaByUrl, getMedia } from '../../../api/media';
 
 function ImageBlock({ block, onChange, onDelete, postSlug }) {
   const [uploading, setUploading] = useState(false);
+  const [showAssetPicker, setShowAssetPicker] = useState(false);
+  const [assets, setAssets] = useState([]);
+
+  useEffect(() => {
+    if (showAssetPicker && postSlug) {
+      loadAssets();
+    }
+  }, [showAssetPicker, postSlug]);
+
+  const loadAssets = async () => {
+    try {
+      const data = await getMedia();
+      // Filter assets for current post
+      const filtered = postSlug
+        ? data.filter(asset => asset.url.includes(`/posts/${postSlug}/`))
+        : [];
+      setAssets(filtered);
+    } catch (err) {
+      console.error('Failed to load assets:', err);
+    }
+  };
+
+  const handleSelectAsset = (assetUrl) => {
+    onChange({ src: assetUrl });
+    setShowAssetPicker(false);
+  };
 
   const handleFileChange = async (e) => {
     const file = e.target.files?.[0];
@@ -68,8 +94,42 @@ function ImageBlock({ block, onChange, onDelete, postSlug }) {
         </div>
       ) : (
         <div className="image-upload">
-          <input type="file" accept="image/*" onChange={handleFileChange} />
-          {uploading && <span>Uploading...</span>}
+          {showAssetPicker ? (
+            <div className="asset-picker">
+              <div className="asset-picker-header">
+                <h4>Select Existing Asset</h4>
+                <button onClick={() => setShowAssetPicker(false)}>Cancel</button>
+              </div>
+              {assets.length > 0 ? (
+                <div className="asset-grid">
+                  {assets.map((asset) => (
+                    <div
+                      key={asset.id}
+                      className="asset-item"
+                      onClick={() => handleSelectAsset(asset.url)}
+                    >
+                      <img src={asset.url} alt={asset.alt_text || 'Asset'} />
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p>No assets available. Upload an image first.</p>
+              )}
+            </div>
+          ) : (
+            <>
+              <input type="file" accept="image/*" onChange={handleFileChange} id={`file-${block.id}`} />
+              <label htmlFor={`file-${block.id}`} className="upload-button">
+                Upload New Image
+              </label>
+              {postSlug && (
+                <button onClick={() => setShowAssetPicker(true)} className="select-existing">
+                  Select Existing
+                </button>
+              )}
+              {uploading && <span>Uploading...</span>}
+            </>
+          )}
         </div>
       )}
     </div>
