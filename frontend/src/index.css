@@ -145,6 +145,26 @@ body.theme-dark .post .description {
   white-space: pre-wrap;
 }
 
+.post .block-text ul,
+.post .block-text ol {
+  padding-left: 24px;
+  margin: 12px 0;
+}
+
+.post .block-text ul li,
+.post .block-text ol li {
+  margin: 4px 0;
+  display: list-item;
+}
+
+.post .block-text ul {
+  list-style-type: disc;
+}
+
+.post .block-text ol {
+  list-style-type: decimal;
+}
+
 .text-block .ProseMirror {
   white-space: pre-wrap;
 }
@@ -756,12 +776,12 @@ button.danger {
 .ProseMirror ol {
   padding-left: 24px;
   margin: 12px 0;
-  list-style-position: inside;
 }
 
 .ProseMirror ul li,
 .ProseMirror ol li {
   margin: 4px 0;
+  display: list-item;
 }
 
 .ProseMirror ul {
