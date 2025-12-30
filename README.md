@@ -2,6 +2,8 @@
 
 A modern, full-stack blogging platform built with React and Django, featuring a rich block-based content editor similar to Medium and Notion.
 
+**Built for:** Private use among a small group of trusted users with invite-code based registration.
+
 ## Features
 
 ### Content Editor
@@ -205,6 +207,8 @@ Use Code blocks (not Code Display) to add custom CSS, HTML, or JavaScript that w
 2. Select CSS, HTML, or JavaScript as the language
 3. Write your code
 4. The code will be hidden but executed when the post is published
+
+**Note:** This feature allows arbitrary code execution on the client side (similar to CodePen/JSFiddle). This is intentional for a private blogging platform among trusted users. For a public-facing application, additional security measures like Content Security Policy, sandboxed iframes, and input sanitization would be necessary.
 
 ## API Endpoints
 
