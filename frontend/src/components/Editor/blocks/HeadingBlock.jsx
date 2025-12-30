@@ -10,6 +10,7 @@ function HeadingBlock({ block, onChange, onDelete }) {
   const [showColorPicker, setShowColorPicker] = useState(false);
 
   const editor = useEditor({
+    enableInputRules: false,
     extensions: [
       StarterKit,
       Placeholder.configure({
