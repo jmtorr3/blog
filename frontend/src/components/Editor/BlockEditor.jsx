@@ -20,6 +20,7 @@ import HeadingBlock from './blocks/HeadingBlock';
 import ImageBlock from './blocks/ImageBlock';
 import ImageRowBlock from './blocks/ImageRowBlock';
 import CodeBlock from './blocks/CodeBlock';
+import CodeDisplayBlock from './blocks/CodeDisplayBlock';
 
 function BlockEditor({ blocks, onChange, postSlug }) {
   const sensors = useSensors(
@@ -56,8 +57,12 @@ function BlockEditor({ blocks, onChange, postSlug }) {
         newBlock.content = '';
         newBlock.language = 'javascript';
         break;
+      case 'code-display':
+        newBlock.content = '';
+        newBlock.language = 'javascript';
+        break;
     }
-    
+
     onChange([...blocks, newBlock]);
   };
 
@@ -117,6 +122,8 @@ function BlockEditor({ blocks, onChange, postSlug }) {
         return <ImageRowBlock {...props} />;
       case 'code':
         return <CodeBlock {...props} />;
+      case 'code-display':
+        return <CodeDisplayBlock {...props} />;
       default:
         return <div>Unknown block type</div>;
     }
@@ -144,6 +151,7 @@ function BlockEditor({ blocks, onChange, postSlug }) {
         <button onClick={() => addBlock('image')}>+ Image</button>
         <button onClick={() => addBlock('image-row')}>+ Image Row</button>
         <button onClick={() => addBlock('code')}>+ Code</button>
+        <button onClick={() => addBlock('code-display')}>+ Code Display</button>
       </div>
     </div>
   );

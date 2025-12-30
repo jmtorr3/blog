@@ -57,7 +57,7 @@ function Layout() {
           <div className={`nav-links ${mobileMenuOpen ? 'mobile-open' : ''}`}>
             {!isPostPage && (
               <button onClick={toggleTheme} className="theme-toggle">
-                {theme === 'dark' ? '☀️' : '🌙'}
+                {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
               </button>
             )}
             {user ? (

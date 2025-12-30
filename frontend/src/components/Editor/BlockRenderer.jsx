@@ -63,7 +63,18 @@ function BlockRenderer({ blocks }) {
                 {block.content}
               </SyntaxHighlighter>
             );
-          
+
+          case 'code-display':
+            return (
+              <SyntaxHighlighter
+                key={block.id}
+                language={block.language || 'javascript'}
+                style={tomorrow}
+              >
+                {block.content}
+              </SyntaxHighlighter>
+            );
+
           default:
             return null;
         }
