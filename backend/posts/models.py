@@ -28,7 +28,6 @@ class Post(models.Model):
     slug = models.SlugField(max_length=200, unique=True, blank=True)
     description = models.TextField(blank=True, help_text="Short description for previews")
     cover_image = models.ImageField(upload_to='covers/', blank=True, null=True)
-    custom_css = models.TextField(blank=True, help_text="Custom CSS for this post")
     blocks = models.JSONField(default=list)
     status = models.CharField(max_length=10, choices=Status.choices, default=Status.DRAFT)
     created_at = models.DateTimeField(auto_now_add=True)

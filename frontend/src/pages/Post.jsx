@@ -12,7 +12,7 @@ function Post() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const url = username 
+    const url = username
       ? `/users/${username}/posts/${slug}/`
       : `/posts/${slug}/`;
     client.get(url)
@@ -21,26 +21,80 @@ function Post() {
       .finally(() => setLoading(false));
   }, [username, slug]);
 
+  // Apply CSS, JavaScript, and HTML from code blocks
   useEffect(() => {
-    if (post?.custom_css) {
+    if (!post?.blocks) return;
+
+    const cleanupFunctions = [];
+
+    // Find and apply CSS code blocks
+    const cssBlocks = post.blocks.filter(
+      block => block.type === 'code' && block.language === 'css'
+    );
+
+    if (cssBlocks.length > 0) {
+      const combinedCSS = cssBlocks.map(block => block.content).join('\n\n');
       const style = document.createElement('style');
       style.id = 'post-custom-css';
-      style.textContent = post.custom_css;
+      style.textContent = combinedCSS;
       document.head.appendChild(style);
 
-      // Remove theme class and add custom-post-page class
+      // Add custom post class to body
       const currentTheme = document.body.classList.contains('theme-dark') ? 'theme-dark' : 'theme-light';
       document.body.classList.remove('theme-dark', 'theme-light');
       document.body.classList.add('custom-post-page');
 
-      return () => {
+      cleanupFunctions.push(() => {
         const existing = document.getElementById('post-custom-css');
         if (existing) existing.remove();
         document.body.classList.remove('custom-post-page');
-        // Restore theme class
         document.body.classList.add(currentTheme);
-      };
+      });
     }
+
+    // Find and render HTML code blocks
+    const htmlBlocks = post.blocks.filter(
+      block => block.type === 'code' && block.language === 'html'
+    );
+
+    htmlBlocks.forEach((block, index) => {
+      const container = document.createElement('div');
+      container.id = `post-custom-html-${index}`;
+      container.innerHTML = block.content;
+
+      // Insert after the post content
+      const postContent = document.querySelector('.post .content');
+      if (postContent) {
+        postContent.appendChild(container);
+      }
+
+      cleanupFunctions.push(() => {
+        const existing = document.getElementById(`post-custom-html-${index}`);
+        if (existing) existing.remove();
+      });
+    });
+
+    // Find and execute JavaScript code blocks
+    const jsBlocks = post.blocks.filter(
+      block => block.type === 'code' && block.language === 'javascript'
+    );
+
+    jsBlocks.forEach((block, index) => {
+      const script = document.createElement('script');
+      script.id = `post-custom-js-${index}`;
+      script.textContent = block.content;
+      document.body.appendChild(script);
+
+      cleanupFunctions.push(() => {
+        const existing = document.getElementById(`post-custom-js-${index}`);
+        if (existing) existing.remove();
+      });
+    });
+
+    // Return cleanup function
+    return () => {
+      cleanupFunctions.forEach(cleanup => cleanup());
+    };
   }, [post]);
 
   if (loading) return <div>Loading...</div>;

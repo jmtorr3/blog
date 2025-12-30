@@ -50,6 +50,10 @@ function BlockRenderer({ blocks }) {
             );
           
           case 'code':
+            // Hide CSS, JavaScript, and HTML code blocks since they're applied to the page
+            if (['css', 'javascript', 'html'].includes(block.language)) {
+              return null;
+            }
             return (
               <SyntaxHighlighter
                 key={block.id}

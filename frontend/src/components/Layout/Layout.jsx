@@ -75,6 +75,9 @@ function Layout() {
       <main>
         <Outlet />
       </main>
+      <footer className="footer">
+        <p>&copy; {new Date().getFullYear()} sys32ent. All rights reserved.</p>
+      </footer>
     </div>
   );
 }
