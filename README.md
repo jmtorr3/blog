@@ -269,7 +269,7 @@ This project is open source and available under the MIT License.
 ## Author
 
 **slumpy**
-- GitHub: [@slumpy666](https://github.com/slumpy666)
+- GitHub: [@jmtorr3](https://github.com/jmtorr3)
 - Website: [sys32ent.com](https://sys32ent.com)
 
 ## Acknowledgments
