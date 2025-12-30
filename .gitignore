@@ -1,0 +1,23 @@
+# Database
+db.sqlite3
+
+# Media uploads
+media/
+
+# Virtual environment
+venv/
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyc
+
+# Environment
+.env
+.env.production
+
+# IDE
+.idea/
+.vscode/
+*.swp
+EOF

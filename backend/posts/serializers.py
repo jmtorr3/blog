@@ -105,7 +105,8 @@ class PostDetailSerializer(serializers.ModelSerializer):
 class PostCreateUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Post
-        fields = ['title', 'description', 'cover_image', 'blocks', 'status', 'custom_css']
+        fields = ['title', 'description', 'cover_image', 'blocks', 'status', 'custom_css', 'slug']
+        read_only_fields = ['slug']
 
     def validate_blocks(self, value):
         if not isinstance(value, list):

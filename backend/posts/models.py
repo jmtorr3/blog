@@ -102,6 +102,17 @@ class Post(models.Model):
                 media.post = self
                 media.save()
 
+    def delete(self, *args, **kwargs):
+    # Delete the post's media folder
+        post_folder = os.path.join(settings.MEDIA_ROOT, 'posts', self.slug)
+        if os.path.exists(post_folder):
+            shutil.rmtree(post_folder)
+    
+        # Delete associated media records
+        self.media.all().delete()
+    
+        super().delete(*args, **kwargs)
+
 
 class Media(models.Model):
     """Uploaded media files (images, videos)."""

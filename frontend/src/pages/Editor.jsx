@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { getPost, createPost, updatePost, publishPost, unpublishPost, deletePost } from '../api/posts';
 import { useAuth } from '../hooks/useAuth';
 import BlockEditor from '../components/Editor/BlockEditor';
@@ -7,7 +7,10 @@ import BlockEditor from '../components/Editor/BlockEditor';
 function Editor() {
   const { slug } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAuth();
+  
+  const [currentSlug, setCurrentSlug] = useState(null);
   const [post, setPost] = useState({
     title: '',
     description: '',
@@ -15,61 +18,83 @@ function Editor() {
     status: 'draft',
     custom_css: '',
   });
-  const [loading, setLoading] = useState(!!slug);
+  const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
 
+  // Load post if we have a slug in URL
   useEffect(() => {
-    if (slug) {
+    if (slug && slug !== 'undefined') {
+      setLoading(true);
+      setCurrentSlug(slug);
       getPost(slug)
-        .then(setPost)
+        .then((data) => {
+          setPost(data);
+        })
         .catch(console.error)
         .finally(() => setLoading(false));
     }
   }, [slug]);
 
   const handleSave = async () => {
+    if (!post.title.trim()) {
+      alert('Please enter a title');
+      return;
+    }
+    
     setSaving(true);
     try {
-      if (slug) {
-        await updatePost(slug, post);
+      if (currentSlug) {
+        const updated = await updatePost(currentSlug, post);
+        setPost(updated);
+        alert('Saved!');
       } else {
         const newPost = await createPost(post);
+        setCurrentSlug(newPost.slug);
+        setPost(newPost);
+        // Update URL to show the new slug
         navigate(`/${user.username}/editor/${newPost.slug}`, { replace: true });
       }
     } catch (err) {
       console.error(err);
+      alert('Error saving: ' + err.message);
     } finally {
       setSaving(false);
     }
   };
 
   const handlePublish = async () => {
+    if (!post.title.trim()) {
+      alert('Please enter a title');
+      return;
+    }
+    
     setSaving(true);
     try {
-      let postSlug = slug;
-    
-      // If no slug, create the post first
+      let postSlug = currentSlug;
+      
       if (!postSlug) {
         const newPost = await createPost(post);
         postSlug = newPost.slug;
+        setCurrentSlug(postSlug);
       } else {
         await updatePost(postSlug, post);
       }
-    
+      
       await publishPost(postSlug);
       navigate(`/${user.username}/post/${postSlug}`);
     } catch (err) {
       console.error(err);
+      alert('Error publishing: ' + err.message);
     } finally {
       setSaving(false);
     }
   };
 
   const handleUnpublish = async () => {
-    if (!slug) return;
+    if (!currentSlug) return;
     setSaving(true);
     try {
-      await unpublishPost(slug);
+      await unpublishPost(currentSlug);
       setPost({ ...post, status: 'draft' });
     } catch (err) {
       console.error(err);
@@ -79,10 +104,11 @@ function Editor() {
   };
 
   const handleDelete = async () => {
-    if (!slug) return;
+    if (!currentSlug) return;
     if (!confirm('Are you sure you want to delete this post?')) return;
+    
     try {
-      await deletePost(slug);
+      await deletePost(currentSlug);
       navigate('/drafts');
     } catch (err) {
       console.error(err);
@@ -114,7 +140,7 @@ function Editor() {
               Publish
             </button>
           )}
-          {slug && (
+          {currentSlug && (
             <button onClick={handleDelete} className="danger">
               Delete
             </button>
@@ -129,7 +155,7 @@ function Editor() {
         onChange={(e) => setPost({ ...post, description: e.target.value })}
         className="description-input"
       />
-      
+
       <textarea
         placeholder="Custom CSS (optional)"
         value={post.custom_css || ''}
