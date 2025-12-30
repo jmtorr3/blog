@@ -7,12 +7,8 @@ function CodeBlock({ block, onChange, onDelete }) {
           onChange={(e) => onChange({ language: e.target.value })}
         >
           <option value="javascript">JavaScript</option>
-          <option value="python">Python</option>
-          <option value="java">Java</option>
           <option value="css">CSS</option>
           <option value="html">HTML</option>
-          <option value="bash">Bash</option>
-          <option value="sql">SQL</option>
         </select>
         <button onClick={onDelete} className="delete">×</button>
       </div>

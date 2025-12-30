@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { getPost, createPost, updatePost, publishPost, unpublishPost, deletePost } from '../api/posts';
 import { useAuth } from '../hooks/useAuth';
 import BlockEditor from '../components/Editor/BlockEditor';
+import AssetManager from '../components/Editor/AssetManager';
 
 function Editor() {
   const { slug } = useParams();
   const navigate = useNavigate();
-  const location = useLocation();
   const { user } = useAuth();
   
   const [currentSlug, setCurrentSlug] = useState(null);
@@ -16,7 +16,6 @@ function Editor() {
     description: '',
     blocks: [],
     status: 'draft',
-    custom_css: '',
   });
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -129,7 +128,7 @@ function Editor() {
         />
         <div className="editor-actions">
           <button onClick={handleSave} disabled={saving}>
-            {saving ? 'Saving...' : 'Save Draft'}
+            {saving ? 'Saving...' : (post.status === 'published' ? 'Save' : 'Save Draft')}
           </button>
           {post.status === 'published' ? (
             <button onClick={handleUnpublish} disabled={saving}>
@@ -156,14 +155,8 @@ function Editor() {
         className="description-input"
       />
 
-      <textarea
-        placeholder="Custom CSS (optional)"
-        value={post.custom_css || ''}
-        onChange={(e) => setPost({ ...post, custom_css: e.target.value })}
-        className="css-input"
-        rows={6}
-      />
-      
+      <AssetManager postSlug={currentSlug} />
+
       <BlockEditor
         blocks={post.blocks}
         onChange={(blocks) => setPost({ ...post, blocks })}
