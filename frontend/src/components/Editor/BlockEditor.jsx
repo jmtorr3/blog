@@ -21,7 +21,7 @@ import ImageBlock from './blocks/ImageBlock';
 import ImageRowBlock from './blocks/ImageRowBlock';
 import CodeBlock from './blocks/CodeBlock';
 
-function BlockEditor({ blocks, onChange }) {
+function BlockEditor({ blocks, onChange, postSlug }) {
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
@@ -103,6 +103,7 @@ function BlockEditor({ blocks, onChange }) {
       block,
       onChange: (updates) => updateBlock(block.id, updates),
       onDelete: () => deleteBlock(block.id),
+      postSlug,
     };
 
     switch (block.type) {

@@ -49,68 +49,77 @@ class Post(models.Model):
             while Post.objects.filter(slug=self.slug).exclude(pk=self.pk).exists():
                 self.slug = f"{original_slug}-{counter}"
                 counter += 1
-        
+
         super().save(*args, **kwargs)
-        
-        # Move any images referenced in blocks to the post folder
         self.organize_media()
 
     def organize_media(self):
         """Move uploaded images to post folder based on URLs in blocks"""
-        import re
-        
         post_folder = os.path.join(settings.MEDIA_ROOT, 'posts', self.slug)
         os.makedirs(post_folder, exist_ok=True)
-        
-        # Find all image URLs in blocks
+
+        updated = False
         for block in self.blocks:
             if block.get('type') == 'image' and block.get('src'):
-                self._move_media_file(block, 'src', post_folder)
+                if self._move_media_file(block, 'src', post_folder):
+                    updated = True
             elif block.get('type') == 'image-row' and block.get('images'):
                 for image in block['images']:
                     if image.get('src'):
-                        self._move_media_file(image, 'src', post_folder)
+                        if self._move_media_file(image, 'src', post_folder):
+                            updated = True
+
+        # Save updated URLs to database without triggering organize_media again
+        if updated:
+            Post.objects.filter(pk=self.pk).update(blocks=self.blocks)
 
     def _move_media_file(self, block_data, key, post_folder):
         """Move a single media file to the post folder and update the URL"""
         import re
-    
+
         url = block_data.get(key, '')
         if not url:
-            return
-        
-        # Extract filename from URL
-        match = re.search(r'/media/uploads/([^/]+)$', url)
+            return False
+
+        # Match both /media/uploads/ and /blog/media/uploads/
+        match = re.search(r'/(?:blog/)?media/uploads/([^/]+)$', url)
         if not match:
-            return
-        
+            return False
+
         filename = match.group(1)
         old_path = os.path.join(settings.MEDIA_ROOT, 'uploads', filename)
         new_path = os.path.join(post_folder, filename)
-    
+
         if os.path.exists(old_path) and not os.path.exists(new_path):
             shutil.move(old_path, new_path)
-        
-            # Update the URL in block data
-            new_url = url.replace(f'/media/uploads/{filename}', f'/media/posts/{self.slug}/{filename}')
+
+            # Update the URL in block data - handle both URL formats
+            if '/blog/media/uploads/' in url:
+                new_url = url.replace(f'/blog/media/uploads/{filename}', f'/blog/media/posts/{self.slug}/{filename}')
+            else:
+                new_url = url.replace(f'/media/uploads/{filename}', f'/media/posts/{self.slug}/{filename}')
             block_data[key] = new_url
-        
-            # Update Media model if exists - use filter().first() instead of get()
+
+            # Update Media model if exists
             media = Media.objects.filter(file=f'uploads/{filename}').first()
             if media:
                 media.file.name = f'posts/{self.slug}/{filename}'
                 media.post = self
                 media.save()
 
+            return True
+
+        return False
+
     def delete(self, *args, **kwargs):
-    # Delete the post's media folder
+        # Delete the post's media folder
         post_folder = os.path.join(settings.MEDIA_ROOT, 'posts', self.slug)
         if os.path.exists(post_folder):
             shutil.rmtree(post_folder)
-    
+
         # Delete associated media records
         self.media.all().delete()
-    
+
         super().delete(*args, **kwargs)
 
 
@@ -136,3 +145,40 @@ class Media(models.Model):
 
     def __str__(self):
         return self.filename
+
+    def save(self, *args, **kwargs):
+        """Move file to correct location if post is assigned"""
+        is_new = self.pk is None
+        old_post = None
+
+        # Check if post assignment changed
+        if not is_new:
+            try:
+                old_instance = Media.objects.get(pk=self.pk)
+                old_post = old_instance.post
+            except Media.DoesNotExist:
+                pass
+
+        # Save the instance first
+        super().save(*args, **kwargs)
+
+        # Move file if post was assigned/changed
+        if self.post and (is_new or old_post != self.post):
+            current_name = self.file.name
+            expected_path = f'posts/{self.post.slug}/{os.path.basename(current_name)}'
+
+            # Only move if not already in correct location
+            if current_name != expected_path:
+                old_file_path = self.file.path
+
+                # Update file field to new path
+                self.file.name = expected_path
+                new_file_path = self.file.path
+
+                # Move the physical file
+                if os.path.exists(old_file_path) and old_file_path != new_file_path:
+                    os.makedirs(os.path.dirname(new_file_path), exist_ok=True)
+                    shutil.move(old_file_path, new_file_path)
+
+                    # Update database with new path (without triggering save recursion)
+                    Media.objects.filter(pk=self.pk).update(file=self.file.name)

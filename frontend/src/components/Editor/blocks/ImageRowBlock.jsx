@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { uploadMedia, deleteMediaByUrl } from '../../../api/media';
 
-function ImageRowBlock({ block, onChange, onDelete }) {
+function ImageRowBlock({ block, onChange, onDelete, postSlug }) {
   const [uploading, setUploading] = useState(false);
 
   const handleFileChange = async (e) => {
@@ -10,7 +10,7 @@ function ImageRowBlock({ block, onChange, onDelete }) {
 
     setUploading(true);
     try {
-      const media = await uploadMedia(file);
+      const media = await uploadMedia(file, '', postSlug);
       const newImages = [...(block.images || []), { src: media.url, caption: '' }];
       onChange({ images: newImages });
     } catch (err) {

@@ -5,11 +5,14 @@ export const getMedia = async () => {
   return response.data;
 };
 
-export const uploadMedia = async (file, altText = '') => {
+export const uploadMedia = async (file, altText = '', postSlug = null) => {
   const formData = new FormData();
   formData.append('file', file);
   formData.append('alt_text', altText);
-  
+  if (postSlug) {
+    formData.append('post_slug', postSlug);
+  }
+
   const response = await client.post('/media/', formData, {
     headers: {
       'Content-Type': 'multipart/form-data',

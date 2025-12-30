@@ -167,6 +167,7 @@ function Editor() {
       <BlockEditor
         blocks={post.blocks}
         onChange={(blocks) => setPost({ ...post, blocks })}
+        postSlug={currentSlug}
       />
     </div>
   );
