@@ -70,6 +70,23 @@ function TextBlock({ block, onChange, onDelete }) {
         <div className="toolbar-separator"></div>
 
         <button
+          onClick={() => editor?.chain().focus().toggleBulletList().run()}
+          className={editor?.isActive('bulletList') ? 'is-active' : ''}
+          title="Bullet List"
+        >
+          •
+        </button>
+        <button
+          onClick={() => editor?.chain().focus().toggleOrderedList().run()}
+          className={editor?.isActive('orderedList') ? 'is-active' : ''}
+          title="Numbered List"
+        >
+          1.
+        </button>
+
+        <div className="toolbar-separator"></div>
+
+        <button
           onClick={() => editor?.chain().focus().setTextAlign('left').run()}
           className={editor?.isActive({ textAlign: 'left' }) ? 'is-active' : ''}
           title="Align Left"
