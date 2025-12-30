@@ -23,11 +23,18 @@ function Home() {
       ) : (
         <ul className="post-list">
           {posts.map((post) => (
-            <li key={post.id}>
-              <Link to={`/${post.author?.username}/post/${post.slug}`}>
-                <h2>{post.title}</h2>
-                {post.description && <p>{post.description}</p>}
-                <span className="author">by {post.author?.username}</span>
+            <li key={post.id} className="post-item">
+              <Link to={`/${post.author?.username}/post/${post.slug}`} className="post-link">
+                <div className="post-content">
+                  <h2>{post.title}</h2>
+                  {post.description && <p>{post.description}</p>}
+                  <span className="author">by {post.author?.username}</span>
+                </div>
+                {post.cover_image_url && (
+                  <div className="post-thumbnail">
+                    <img src={post.cover_image_url} alt={post.title} />
+                  </div>
+                )}
               </Link>
             </li>
           ))}
