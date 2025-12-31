@@ -72,24 +72,41 @@ function BlockEditor({ blocks, onChange, postSlug }) {
 
   const deleteBlock = async (id) => {
     const block = blocks.find((b) => b.id === id);
-    
+
     // Clean up media files
     if (block) {
-      try {
-        if (block.type === 'image' && block.src) {
-          await deleteMediaByUrl(block.src);
-        } else if (block.type === 'image-row' && block.images) {
-          for (const image of block.images) {
-            if (image.src) {
-              await deleteMediaByUrl(image.src);
+      let hasImages = false;
+      if (block.type === 'image' && block.src) {
+        hasImages = true;
+      } else if (block.type === 'image-row' && block.images && block.images.length > 0) {
+        hasImages = true;
+      }
+
+      if (hasImages) {
+        const shouldDeleteFromAssets = window.confirm(
+          'This block contains images. Do you want to remove them from the asset manager as well?\n\n' +
+          'Click "OK" to delete them from assets (files will be removed)\n' +
+          'Click "Cancel" to only remove this block (files will be kept in assets)'
+        );
+
+        if (shouldDeleteFromAssets) {
+          try {
+            if (block.type === 'image' && block.src) {
+              await deleteMediaByUrl(block.src);
+            } else if (block.type === 'image-row' && block.images) {
+              for (const image of block.images) {
+                if (image.src) {
+                  await deleteMediaByUrl(image.src);
+                }
+              }
             }
+          } catch (err) {
+            console.error('Failed to delete media:', err);
           }
         }
-      } catch (err) {
-        console.error('Failed to delete media:', err);
       }
     }
-    
+
     onChange(blocks.filter((b) => b.id !== id));
   };
 

@@ -47,10 +47,18 @@ function ImageBlock({ block, onChange, onDelete, postSlug }) {
 
   const handleRemove = async () => {
     if (block.src) {
-      try {
-        await deleteMediaByUrl(block.src);
-      } catch (err) {
-        console.error('Failed to delete media:', err);
+      const shouldDeleteFromAssets = window.confirm(
+        'Do you want to remove this image from the asset manager as well?\n\n' +
+        'Click "OK" to delete it from assets (file will be removed)\n' +
+        'Click "Cancel" to only remove it from this post (file will be kept in assets)'
+      );
+
+      if (shouldDeleteFromAssets) {
+        try {
+          await deleteMediaByUrl(block.src);
+        } catch (err) {
+          console.error('Failed to delete media:', err);
+        }
       }
     }
     onChange({ src: '' });

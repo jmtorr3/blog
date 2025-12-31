@@ -76,21 +76,33 @@ class Post(models.Model):
         # Create Media object for cover image if it was just uploaded
         if cover_image_changed and self.cover_image:
             try:
-                # Get file size
-                file_size = self.cover_image.size if hasattr(self.cover_image, 'size') else os.path.getsize(self.cover_image.path)
+                # Get file size - use the file object's size if available
+                if hasattr(self.cover_image, 'size'):
+                    file_size = self.cover_image.size
+                else:
+                    file_size = os.path.getsize(self.cover_image.path)
 
-                Media.objects.create(
-                    post=self,
-                    uploaded_by=self.author,
-                    file=self.cover_image.name,
-                    media_type=Media.MediaType.IMAGE,
-                    filename=os.path.basename(self.cover_image.name),
-                    file_size=file_size,
-                    alt_text=f'Cover image for {self.title}'
-                )
+                # Check if Media object already exists for this file
+                existing_media = Media.objects.filter(file=self.cover_image.name).first()
+                if not existing_media:
+                    print(f"Creating Media object for cover image: {self.cover_image.name}")
+                    media = Media.objects.create(
+                        post=self,
+                        uploaded_by=self.author,
+                        file=self.cover_image.name,
+                        media_type=Media.MediaType.IMAGE,
+                        filename=os.path.basename(self.cover_image.name),
+                        file_size=file_size,
+                        alt_text=f'Cover image for {self.title}'
+                    )
+                    print(f"Created Media object: {media.id} - {media.filename}")
+                else:
+                    print(f"Media object already exists for: {self.cover_image.name}")
             except Exception as e:
                 # Log the error but don't fail the save
+                import traceback
                 print(f"Failed to create Media object for cover image: {e}")
+                traceback.print_exc()
 
         self.organize_media()
 

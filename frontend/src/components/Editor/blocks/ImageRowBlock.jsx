@@ -56,10 +56,18 @@ function ImageRowBlock({ block, onChange, onDelete, postSlug }) {
   const removeImage = async (index) => {
     const image = block.images[index];
     if (image?.src) {
-      try {
-        await deleteMediaByUrl(image.src);
-      } catch (err) {
-        console.error('Failed to delete media:', err);
+      const shouldDeleteFromAssets = window.confirm(
+        'Do you want to remove this image from the asset manager as well?\n\n' +
+        'Click "OK" to delete it from assets (file will be removed)\n' +
+        'Click "Cancel" to only remove it from this post (file will be kept in assets)'
+      );
+
+      if (shouldDeleteFromAssets) {
+        try {
+          await deleteMediaByUrl(image.src);
+        } catch (err) {
+          console.error('Failed to delete media:', err);
+        }
       }
     }
     const newImages = block.images.filter((_, i) => i !== index);

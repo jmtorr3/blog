@@ -1,6 +1,25 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from .models import Post, Media
+import json
+
+
+class JSONStringField(serializers.JSONField):
+    """
+    Custom JSONField that handles JSON strings from multipart form data.
+    When a file is uploaded alongside JSON data, the browser sends everything
+    as multipart/form-data, which means JSON fields come through as strings.
+    """
+    def to_internal_value(self, data):
+        # If data is a string (from FormData), parse it first
+        if isinstance(data, str):
+            try:
+                data = json.loads(data)
+            except (json.JSONDecodeError, TypeError) as e:
+                self.fail('invalid', error=str(e))
+
+        # Now let the parent JSONField handle the validation
+        return super().to_internal_value(data)
 
 
 class AuthorSerializer(serializers.ModelSerializer):
@@ -103,31 +122,13 @@ class PostDetailSerializer(serializers.ModelSerializer):
 
 
 class PostCreateUpdateSerializer(serializers.ModelSerializer):
+    # Use custom JSONStringField to handle JSON strings from multipart form data
+    blocks = JSONStringField(required=False, allow_null=False)
+
     class Meta:
         model = Post
         fields = ['title', 'description', 'cover_image', 'blocks', 'status', 'slug']
         read_only_fields = ['slug']
-
-    def to_internal_value(self, data):
-        # Handle blocks being sent as JSON string in FormData
-        if 'blocks' in data:
-            import json
-            blocks_data = data.get('blocks')
-
-            # If it's a string, parse it
-            if isinstance(blocks_data, str):
-                try:
-                    # Make a mutable copy of data
-                    if hasattr(data, '_mutable'):
-                        data._mutable = True
-                    else:
-                        data = data.copy()
-
-                    data['blocks'] = json.loads(blocks_data)
-                except json.JSONDecodeError as e:
-                    raise serializers.ValidationError({'blocks': f'Invalid JSON string: {str(e)}'})
-
-        return super().to_internal_value(data)
 
     def validate_blocks(self, value):
         if not isinstance(value, list):
