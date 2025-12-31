@@ -18,9 +18,10 @@ def post_media_path(instance, filename):
 
 
 def cover_image_path(instance, filename):
-    """Upload cover images to media/{username}/covers/{filename}"""
+    """Upload cover images to media/{username}/posts/{slug}/{filename}"""
     username = instance.author.username
-    return f'{username}/covers/{filename}'
+    slug = instance.slug or 'temp'
+    return f'{username}/posts/{slug}/{filename}'
 
 
 class Post(models.Model):
@@ -58,7 +59,39 @@ class Post(models.Model):
                 self.slug = f"{original_slug}-{counter}"
                 counter += 1
 
+        # Track if cover image changed
+        cover_image_changed = False
+        if self.pk:
+            try:
+                old_instance = Post.objects.get(pk=self.pk)
+                if old_instance.cover_image != self.cover_image:
+                    cover_image_changed = True
+            except Post.DoesNotExist:
+                cover_image_changed = True
+        elif self.cover_image:
+            cover_image_changed = True
+
         super().save(*args, **kwargs)
+
+        # Create Media object for cover image if it was just uploaded
+        if cover_image_changed and self.cover_image:
+            try:
+                # Get file size
+                file_size = self.cover_image.size if hasattr(self.cover_image, 'size') else os.path.getsize(self.cover_image.path)
+
+                Media.objects.create(
+                    post=self,
+                    uploaded_by=self.author,
+                    file=self.cover_image.name,
+                    media_type=Media.MediaType.IMAGE,
+                    filename=os.path.basename(self.cover_image.name),
+                    file_size=file_size,
+                    alt_text=f'Cover image for {self.title}'
+                )
+            except Exception as e:
+                # Log the error but don't fail the save
+                print(f"Failed to create Media object for cover image: {e}")
+
         self.organize_media()
 
     def organize_media(self):

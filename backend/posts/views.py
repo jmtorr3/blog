@@ -1,7 +1,7 @@
 from rest_framework import viewsets, status, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from django.utils import timezone
 from rest_framework.views import APIView
 from django.contrib.auth.models import User
@@ -47,6 +47,7 @@ class IsAuthorOrReadOnly(permissions.BasePermission):
 
 class PostViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly]
+    parser_classes = [JSONParser, MultiPartParser, FormParser]
     lookup_field = 'slug'
     
     def get_queryset(self):

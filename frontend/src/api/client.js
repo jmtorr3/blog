@@ -4,16 +4,28 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/blog/api'
 
 const client = axios.create({
   baseURL: API_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
 });
 
 client.interceptors.request.use((config) => {
   const token = localStorage.getItem('access_token');
+
+  // Ensure headers object exists
+  if (!config.headers) {
+    config.headers = {};
+  }
+
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+
+  // Set Content-Type for JSON requests only (not FormData)
+  if (config.data instanceof FormData) {
+    // Delete Content-Type header to let the browser set it with boundary
+    delete config.headers['Content-Type'];
+  } else {
+    config.headers['Content-Type'] = 'application/json';
+  }
+
   return config;
 });
 

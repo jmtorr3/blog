@@ -108,6 +108,27 @@ class PostCreateUpdateSerializer(serializers.ModelSerializer):
         fields = ['title', 'description', 'cover_image', 'blocks', 'status', 'slug']
         read_only_fields = ['slug']
 
+    def to_internal_value(self, data):
+        # Handle blocks being sent as JSON string in FormData
+        if 'blocks' in data:
+            import json
+            blocks_data = data.get('blocks')
+
+            # If it's a string, parse it
+            if isinstance(blocks_data, str):
+                try:
+                    # Make a mutable copy of data
+                    if hasattr(data, '_mutable'):
+                        data._mutable = True
+                    else:
+                        data = data.copy()
+
+                    data['blocks'] = json.loads(blocks_data)
+                except json.JSONDecodeError as e:
+                    raise serializers.ValidationError({'blocks': f'Invalid JSON string: {str(e)}'})
+
+        return super().to_internal_value(data)
+
     def validate_blocks(self, value):
         if not isinstance(value, list):
             raise serializers.ValidationError("Blocks must be a list")
@@ -123,7 +144,7 @@ class PostCreateUpdateSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError("Each block must have a type")
             if block['type'] not in valid_types:
                 raise serializers.ValidationError(f"Invalid block type: {block['type']}")
-        
+
         return value
 
     def create(self, validated_data):
