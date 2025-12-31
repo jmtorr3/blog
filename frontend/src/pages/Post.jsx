@@ -44,6 +44,35 @@ function Post() {
       document.body.classList.remove('theme-dark', 'theme-light');
       document.body.classList.add('custom-post-page');
 
+      // Add temporary style to hide content during cleanup
+      const hideStyle = document.createElement('style');
+      hideStyle.id = 'post-cleanup-hide';
+      hideStyle.textContent = '.post .content { visibility: hidden; }';
+      document.head.appendChild(hideStyle);
+
+      // Clean up inline text-align styles when custom CSS is present
+      setTimeout(() => {
+        // Clean all text nodes containing p tag strings
+        document.querySelectorAll('.post .content *').forEach((element) => {
+          element.childNodes.forEach(node => {
+            if (node.nodeType === Node.TEXT_NODE && node.textContent.includes('<p style="text-align:')) {
+              node.textContent = node.textContent
+                .replace(/<p style="text-align:\s*(left|center|right);">/gi, '')
+                .replace(/<\/p>/gi, '');
+            }
+          });
+        });
+
+        // Remove inline text-align styles from HTML elements
+        document.querySelectorAll('.post .content [style*="text-align"]').forEach(el => {
+          el.removeAttribute('style');
+        });
+
+        // Show content after cleanup
+        const hideStyle = document.getElementById('post-cleanup-hide');
+        if (hideStyle) hideStyle.remove();
+      }, 100);
+
       cleanupFunctions.push(() => {
         const existing = document.getElementById('post-custom-css');
         if (existing) existing.remove();
