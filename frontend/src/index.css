@@ -1536,3 +1536,54 @@ button.danger {
     font-size: 1rem;
   }
 }
+
+/* Collapsible Code Block */
+.collapsible-code-block {
+  position: relative;
+  margin: 1rem 0;
+}
+
+.collapsible-code-block .code-wrapper {
+  position: relative;
+  transition: max-height 0.3s ease;
+}
+
+.collapsible-code-block .code-wrapper.collapsed {
+  position: relative;
+}
+
+.collapsible-code-block .code-fade {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 80px;
+  background: linear-gradient(transparent, #1d1f21);
+  pointer-events: none;
+}
+
+body.theme-light .collapsible-code-block .code-fade {
+  background: linear-gradient(transparent, #ffffff);
+}
+
+.collapsible-code-block .toggle-code-btn {
+  display: block;
+  width: 100%;
+  padding: 0.5rem;
+  margin-top: 0.5rem;
+  background: var(--border-color);
+  color: var(--text-color);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  transition: background 0.2s ease;
+}
+
+.collapsible-code-block .toggle-code-btn:hover {
+  background: var(--glow-color);
+}
+
+.collapsible-code-block pre {
+  margin: 0 !important;
+}

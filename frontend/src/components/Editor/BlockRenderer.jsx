@@ -1,5 +1,4 @@
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { tomorrow } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import CollapsibleCodeBlock from './CollapsibleCodeBlock';
 
 function BlockRenderer({ blocks }) {
   return (
@@ -54,26 +53,10 @@ function BlockRenderer({ blocks }) {
             if (['css', 'javascript', 'html'].includes(block.language)) {
               return null;
             }
-            return (
-              <SyntaxHighlighter
-                key={block.id}
-                language={block.language || 'javascript'}
-                style={tomorrow}
-              >
-                {block.content}
-              </SyntaxHighlighter>
-            );
+            return <CollapsibleCodeBlock key={block.id} block={block} />;
 
           case 'code-display':
-            return (
-              <SyntaxHighlighter
-                key={block.id}
-                language={block.language || 'javascript'}
-                style={tomorrow}
-              >
-                {block.content}
-              </SyntaxHighlighter>
-            );
+            return <CollapsibleCodeBlock key={block.id} block={block} />;
 
           default:
             return null;
