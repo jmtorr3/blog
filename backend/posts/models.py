@@ -1,10 +1,17 @@
 import uuid
 import os
+import re
 import shutil
+import logging
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils.text import slugify
 from django.conf import settings
+
+logger = logging.getLogger(__name__)
+
+# Pre-compiled regex pattern for media URL matching
+MEDIA_URL_PATTERN = re.compile(r'/(?:blog/)?media/([^/]+)/uploads/([^/]+)$')
 
 
 def post_media_path(instance, filename):
@@ -46,6 +53,12 @@ class Post(models.Model):
 
     class Meta:
         ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['status']),
+            models.Index(fields=['author', 'status']),
+            models.Index(fields=['-created_at']),
+            models.Index(fields=['-published_at']),
+        ]
 
     def __str__(self):
         return self.title
@@ -85,7 +98,7 @@ class Post(models.Model):
                 # Check if Media object already exists for this file
                 existing_media = Media.objects.filter(file=self.cover_image.name).first()
                 if not existing_media:
-                    print(f"Creating Media object for cover image: {self.cover_image.name}")
+                    logger.debug("Creating Media object for cover image: %s", self.cover_image.name)
                     media = Media.objects.create(
                         post=self,
                         uploaded_by=self.author,
@@ -95,14 +108,12 @@ class Post(models.Model):
                         file_size=file_size,
                         alt_text=f'Cover image for {self.title}'
                     )
-                    print(f"Created Media object: {media.id} - {media.filename}")
+                    logger.debug("Created Media object: %s - %s", media.id, media.filename)
                 else:
-                    print(f"Media object already exists for: {self.cover_image.name}")
+                    logger.debug("Media object already exists for: %s", self.cover_image.name)
             except Exception as e:
                 # Log the error but don't fail the save
-                import traceback
-                print(f"Failed to create Media object for cover image: {e}")
-                traceback.print_exc()
+                logger.exception("Failed to create Media object for cover image: %s", e)
 
         self.organize_media()
 
@@ -129,14 +140,12 @@ class Post(models.Model):
 
     def _move_media_file(self, block_data, key, post_folder, username):
         """Move a single media file to the post folder and update the URL"""
-        import re
-
         url = block_data.get(key, '')
         if not url:
             return False
 
         # Match both /media/{username}/uploads/ and /blog/media/{username}/uploads/
-        match = re.search(r'/(?:blog/)?media/([^/]+)/uploads/([^/]+)$', url)
+        match = MEDIA_URL_PATTERN.search(url)
         if not match:
             return False
 

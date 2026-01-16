@@ -4,10 +4,16 @@ import Placeholder from '@tiptap/extension-placeholder';
 import TextAlign from '@tiptap/extension-text-align';
 import { Color } from '@tiptap/extension-color';
 import { TextStyle } from '@tiptap/extension-text-style';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 
 function TextBlock({ block, onChange, onDelete }) {
   const [showColorPicker, setShowColorPicker] = useState(false);
+  const isInternalUpdate = useRef(false);
+
+  const handleUpdate = useCallback(({ editor }) => {
+    isInternalUpdate.current = true;
+    onChange({ content: editor.getHTML() });
+  }, [onChange]);
 
   const editor = useEditor({
     enableInputRules: false,
@@ -23,9 +29,7 @@ function TextBlock({ block, onChange, onDelete }) {
       Color,
     ],
     content: block.content,
-    onUpdate: ({ editor }) => {
-      onChange({ content: editor.getHTML() });
-    },
+    onUpdate: handleUpdate,
     editorProps: {
       handleKeyDown: (view, event) => {
         if (event.key === 'Tab') {
@@ -40,10 +44,15 @@ function TextBlock({ block, onChange, onDelete }) {
   });
 
   useEffect(() => {
-    if (editor && block.content !== editor.getHTML()) {
-      editor.commands.setContent(block.content);
+    // Skip update if this was triggered by our own onUpdate callback
+    if (isInternalUpdate.current) {
+      isInternalUpdate.current = false;
+      return;
     }
-  }, [block.content]);
+    if (editor && block.content !== editor.getHTML()) {
+      editor.commands.setContent(block.content, false);
+    }
+  }, [block.content, editor]);
 
   const colors = [
     '#000000', '#ffffff', '#ff0000', '#00ff00', '#0000ff',

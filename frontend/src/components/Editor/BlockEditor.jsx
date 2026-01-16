@@ -30,7 +30,7 @@ function BlockEditor({ blocks, onChange, postSlug }) {
     })
   );
 
-  const generateId = () => Math.random().toString(36).substr(2, 9);
+  const generateId = () => crypto.randomUUID();
 
   const addBlock = (type) => {
     const newBlock = { id: generateId(), type };

@@ -19,17 +19,24 @@ function UserBlog() {
   if (error) return <div className="error">{error}</div>;
 
   return (
-    <div className="user-blog">
+    <div className="home">
       <h1>{username}'s Blog</h1>
       {posts.length === 0 ? (
         <p>No posts yet.</p>
       ) : (
         <ul className="post-list">
           {posts.map((post) => (
-            <li key={post.id}>
-              <Link to={`/${username}/post/${post.slug}`}>
-                <h2>{post.title}</h2>
-                {post.description && <p>{post.description}</p>}
+            <li key={post.id} className="post-item">
+              <Link to={`/${username}/post/${post.slug}`} className="post-link">
+                <div className="post-content">
+                  <h2>{post.title}</h2>
+                  {post.description && <p>{post.description}</p>}
+                </div>
+                {post.cover_image_url && (
+                  <div className="post-thumbnail">
+                    <img src={post.cover_image_url} alt={post.title} />
+                  </div>
+                )}
               </Link>
             </li>
           ))}

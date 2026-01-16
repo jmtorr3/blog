@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { getMedia, uploadMedia, deleteMedia } from '../../api/media';
 
 function AssetManager({ postSlug }) {
@@ -6,20 +6,16 @@ function AssetManager({ postSlug }) {
   const [assets, setAssets] = useState([]);
   const [uploading, setUploading] = useState(false);
   const [copiedUrl, setCopiedUrl] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const lastFetchedSlug = useRef(null);
+  const hasFetchedOnExpand = useRef(false);
 
-  useEffect(() => {
-    // Load assets on mount and when postSlug changes
-    loadAssets();
-  }, [postSlug]);
+  const loadAssets = useCallback(async (force = false) => {
+    // Skip if already loading or if we've already fetched for this slug (unless forced)
+    if (isLoading) return;
+    if (!force && lastFetchedSlug.current === postSlug) return;
 
-  useEffect(() => {
-    // Reload assets when expanded
-    if (isExpanded) {
-      loadAssets();
-    }
-  }, [isExpanded]);
-
-  const loadAssets = async () => {
+    setIsLoading(true);
     try {
       const data = await getMedia();
       // Filter assets to only show those for the current post
@@ -27,10 +23,29 @@ function AssetManager({ postSlug }) {
         ? data.filter(asset => asset.url.includes(`/posts/${postSlug}/`))
         : [];
       setAssets(filtered);
+      lastFetchedSlug.current = postSlug;
     } catch (err) {
       console.error('Failed to load assets:', err);
+    } finally {
+      setIsLoading(false);
     }
-  };
+  }, [postSlug, isLoading]);
+
+  // Load assets only when postSlug changes
+  useEffect(() => {
+    if (postSlug && postSlug !== lastFetchedSlug.current) {
+      hasFetchedOnExpand.current = false;
+      loadAssets();
+    }
+  }, [postSlug, loadAssets]);
+
+  // Load assets when first expanded (if not already loaded)
+  useEffect(() => {
+    if (isExpanded && !hasFetchedOnExpand.current && lastFetchedSlug.current !== postSlug) {
+      hasFetchedOnExpand.current = true;
+      loadAssets();
+    }
+  }, [isExpanded, postSlug, loadAssets]);
 
   const handleUpload = async (e) => {
     const file = e.target.files?.[0];

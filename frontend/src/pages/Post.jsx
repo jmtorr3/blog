@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import client from '../api/client';
 import { useAuth } from '../hooks/useAuth';
@@ -10,6 +10,7 @@ function Post() {
   const [post, setPost] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const contentRef = useRef(null);
 
   useEffect(() => {
     const url = username
@@ -21,19 +22,29 @@ function Post() {
       .finally(() => setLoading(false));
   }, [username, slug]);
 
+  // Memoize code blocks extraction to avoid recalculating on every render
+  const { cssBlocks, htmlBlocks, jsBlocks, combinedCSS } = useMemo(() => {
+    if (!post?.blocks) return { cssBlocks: [], htmlBlocks: [], jsBlocks: [], combinedCSS: '' };
+
+    const css = post.blocks.filter(block => block.type === 'code' && block.language === 'css');
+    const html = post.blocks.filter(block => block.type === 'code' && block.language === 'html');
+    const js = post.blocks.filter(block => block.type === 'code' && block.language === 'javascript');
+
+    return {
+      cssBlocks: css,
+      htmlBlocks: html,
+      jsBlocks: js,
+      combinedCSS: css.map(block => block.content).join('\n\n')
+    };
+  }, [post?.blocks]);
+
   // Apply CSS, JavaScript, and HTML from code blocks
   useEffect(() => {
     if (!post?.blocks) return;
 
     const cleanupFunctions = [];
 
-    // Find and apply CSS code blocks
-    const cssBlocks = post.blocks.filter(
-      block => block.type === 'code' && block.language === 'css'
-    );
-
     if (cssBlocks.length > 0) {
-      const combinedCSS = cssBlocks.map(block => block.content).join('\n\n');
       const style = document.createElement('style');
       style.id = 'post-custom-css';
       style.textContent = combinedCSS;
@@ -44,34 +55,11 @@ function Post() {
       document.body.classList.remove('theme-dark', 'theme-light');
       document.body.classList.add('custom-post-page');
 
-      // Add temporary style to hide content during cleanup
-      const hideStyle = document.createElement('style');
-      hideStyle.id = 'post-cleanup-hide';
-      hideStyle.textContent = '.post .content { visibility: hidden; }';
-      document.head.appendChild(hideStyle);
-
-      // Clean up inline text-align styles when custom CSS is present
-      setTimeout(() => {
-        // Clean all text nodes containing p tag strings
-        document.querySelectorAll('.post .content *').forEach((element) => {
-          element.childNodes.forEach(node => {
-            if (node.nodeType === Node.TEXT_NODE && node.textContent.includes('<p style="text-align:')) {
-              node.textContent = node.textContent
-                .replace(/<p style="text-align:\s*(left|center|right);">/gi, '')
-                .replace(/<\/p>/gi, '');
-            }
-          });
-        });
-
-        // Remove inline text-align styles from HTML elements
-        document.querySelectorAll('.post .content [style*="text-align"]').forEach(el => {
-          el.removeAttribute('style');
-        });
-
-        // Show content after cleanup
-        const hideStyle = document.getElementById('post-cleanup-hide');
-        if (hideStyle) hideStyle.remove();
-      }, 100);
+      // Clean up inline text-align styles using ref instead of querySelectorAll
+      if (contentRef.current) {
+        const elements = contentRef.current.querySelectorAll('[style*="text-align"]');
+        elements.forEach(el => el.removeAttribute('style'));
+      }
 
       cleanupFunctions.push(() => {
         const existing = document.getElementById('post-custom-css');
@@ -82,19 +70,14 @@ function Post() {
     }
 
     // Find and render HTML code blocks
-    const htmlBlocks = post.blocks.filter(
-      block => block.type === 'code' && block.language === 'html'
-    );
-
     htmlBlocks.forEach((block, index) => {
       const container = document.createElement('div');
       container.id = `post-custom-html-${index}`;
       container.innerHTML = block.content;
 
-      // Insert after the post content
-      const postContent = document.querySelector('.post .content');
-      if (postContent) {
-        postContent.appendChild(container);
+      // Insert after the post content using ref
+      if (contentRef.current) {
+        contentRef.current.appendChild(container);
       }
 
       cleanupFunctions.push(() => {
@@ -104,10 +87,6 @@ function Post() {
     });
 
     // Find and execute JavaScript code blocks
-    const jsBlocks = post.blocks.filter(
-      block => block.type === 'code' && block.language === 'javascript'
-    );
-
     jsBlocks.forEach((block, index) => {
       const script = document.createElement('script');
       script.id = `post-custom-js-${index}`;
@@ -124,7 +103,7 @@ function Post() {
     return () => {
       cleanupFunctions.forEach(cleanup => cleanup());
     };
-  }, [post]);
+  }, [post, cssBlocks, htmlBlocks, jsBlocks, combinedCSS]);
 
   if (loading) return <div>Loading...</div>;
   if (error) return <div className="error">{error}</div>;
@@ -143,7 +122,7 @@ function Post() {
           {isAuthor && <Link to={`/${post.author.username}/editor/${post.slug}`}>Edit</Link>}
         </div>
       </header>
-      <div className="content">
+      <div className="content" ref={contentRef}>
         <BlockRenderer blocks={post.blocks} />
       </div>
     </article>

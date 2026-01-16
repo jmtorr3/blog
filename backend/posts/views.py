@@ -6,6 +6,7 @@ from django.utils import timezone
 from rest_framework.views import APIView
 from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404
+from django.db.models import Q
 
 from .models import Post, Media
 from .serializers import (
@@ -19,22 +20,24 @@ from .serializers import (
 
 class UserPostsView(APIView):
     permission_classes = [permissions.AllowAny]
-    
+
     def get(self, request, username, slug=None):
         user = get_object_or_404(User, username=username)
-        
+
         if slug:
             post = get_object_or_404(
-                Post, 
-                author=user, 
-                slug=slug, 
+                Post.objects.select_related('author').prefetch_related('media'),
+                author=user,
+                slug=slug,
                 status=Post.Status.PUBLISHED
             )
             serializer = PostDetailSerializer(post, context={'request': request})
         else:
-            posts = Post.objects.filter(author=user, status=Post.Status.PUBLISHED)
+            posts = Post.objects.select_related('author').filter(
+                author=user, status=Post.Status.PUBLISHED
+            )
             serializer = PostListSerializer(posts, many=True, context={'request': request})
-        
+
         return Response(serializer.data)
 
 
@@ -51,15 +54,19 @@ class PostViewSet(viewsets.ModelViewSet):
     lookup_field = 'slug'
     
     def get_queryset(self):
+        base_qs = Post.objects.select_related('author').prefetch_related('media')
+
         if self.action == 'drafts':
-            return Post.objects.filter(author=self.request.user, status=Post.Status.DRAFT)
-       
+            return base_qs.filter(author=self.request.user, status=Post.Status.DRAFT)
+
         if self.action in ['retrieve', 'update', 'partial_update', 'destroy', 'publish', 'unpublish']:
             if self.request.user.is_authenticated:
-                return Post.objects.filter(author=self.request.user) | Post.objects.filter(status=Post.Status.PUBLISHED)
-            return Post.objects.filter(status=Post.Status.PUBLISHED)
-        
-        return Post.objects.filter(status=Post.Status.PUBLISHED)
+                return base_qs.filter(
+                    Q(author=self.request.user) | Q(status=Post.Status.PUBLISHED)
+                )
+            return base_qs.filter(status=Post.Status.PUBLISHED)
+
+        return base_qs.filter(status=Post.Status.PUBLISHED)
     
     def get_serializer_class(self):
         if self.action == 'list' or self.action == 'drafts':
@@ -107,7 +114,7 @@ class MediaViewSet(viewsets.ModelViewSet):
     parser_classes = [MultiPartParser, FormParser]
     
     def get_queryset(self):
-        return Media.objects.filter(uploaded_by=self.request.user)
+        return Media.objects.select_related('uploaded_by', 'post').filter(uploaded_by=self.request.user)
     
     def get_serializer_class(self):
         if self.action == 'create':
